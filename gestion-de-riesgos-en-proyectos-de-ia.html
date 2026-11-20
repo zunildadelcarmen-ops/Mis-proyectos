@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Riesgos en Proyectos de IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #009EE3 0%, #729E2E 100%);
+            color: white;
+            padding: 50px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-style: italic;
+        }
+
+        .content {
+            padding: 50px;
+        }
+
+        .intro-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 35px;
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border-left: 6px solid #009EE3;
+        }
+
+        .intro-section h2 {
+            color: #009EE3;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .intro-section p {
+            color: #444;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+
+        /* Flip Cards Section */
+        .flip-cards-section {
+            margin: 50px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            color: #729E2E;
+            font-size: 2.2em;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #009EE3, #729E2E);
+            border-radius: 2px;
+        }
+
+        .flip-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 280px;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+            transform: rotateY(180deg);
+        }
+
+        .flip-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .flip-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .flip-description {
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+
+        /* Accordion Section */
+        .accordion-section {
+            margin: 60px 0;
+        }
+
+        .accordion {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .accordion-item:last-child {
+            border-bottom: none;
+        }
+
+        .accordion-header {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            padding: 25px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .accordion-header:hover {
+            background: linear-gradient(135deg, #e8f4fd 0%, #d4e8f7 100%);
+        }
+
+        .accordion-header.active {
+            background: linear-gradient(135deg, #009EE3 0%, #729E2E 100%);
+            color: white;
+        }
+
+        .accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .accordion-icon {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .accordion-header.active .accordion-icon {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .accordion-arrow {
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header.active .accordion-arrow {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            background: #f9f9f9;
+        }
+
+        .accordion-content.active {
+            max-height: 2000px;
+        }
+
+        .accordion-body {
+            padding: 30px;
+        }
+
+        .risk-category {
+            margin-bottom: 30px;
+        }
+
+        .risk-category h4 {
+            color: #E2A30B;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .risk-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .risk-table th {
+            background: linear-gradient(135deg, #729E2E 0%, #009EE3 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .risk-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .risk-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .risk-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .example-box {
+            background: #fff3e0;
+            border-left: 5px solid #DF501D;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .example-box strong {
+            color: #DF501D;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Process Steps */
+        .process-section {
+            margin: 60px 0;
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            padding: 40px;
+            border-radius: 20px;
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .process-step {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .process-step:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #009EE3 0%, #729E2E 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+
+        .step-title {
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .step-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Drag and Drop Activity */
+        .activity-section {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
+            padding: 50px;
+            border-radius: 25px;
+            margin-top: 60px;
+        }
+
+        .activity-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .activity-header h2 {
+            color: #E2A30B;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .activity-instructions {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .drag-drop-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .drag-items, .drop-zones {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            min-height: 400px;
+        }
+
+        .column-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #009EE3;
+        }
+
+        .draggable {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            cursor: move;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .draggable:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .drop-zone {
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            min-height: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            background: #e8f4fd;
+            border-color: #009EE3;
+            transform: scale(1.02);
+        }
+
+        .drop-zone.correct {
+            background: #e8f5e9;
+            border-color: #729E2E;
+        }
+
+        .drop-zone.incorrect {
+            background: #ffebee;
+            border-color: #DF501D;
+        }
+
+        .drop-zone-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .check-button {
+            background: linear-gradient(135deg, #729E2E 0%, #009EE3 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 30px auto;
+        }
+
+        .check-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,158,227,0.4);
+        }
+
+        .check-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .feedback.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .score {
+            font-size: 3em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #729E2E 0%, #009EE3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+
+        .feedback-text {
+            font-size: 1.2em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .progress-indicator {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #729E2E 0%, #009EE3 100%);
+            border-radius: 4px;
+            transition: width 1s ease;
+            width: 0%;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .flip-cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .process-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .drag-drop-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .accordion-title {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Gestión de Riesgos en Proyectos de IA</h1>
+            <p class="subtitle">Navegando en aguas desconocidas de la inteligencia artificial</p>
+        </div>
+
+        <div class="content">
+            <div class="intro-section">
+                <h2>📋 Introducción</h2>
+                <p>La gestión de riesgos en proyectos de IA trasciende los enfoques tradicionales. No solo enfrentamos incertidumbres técnicas, sino también éticas, legales y sociales. Esta guía interactiva te proporcionará un framework integral para identificar, evaluar y mitigar los riesgos únicos de la inteligencia artificial.</p>
+                <div class="progress-indicator">
+                    <div class="progress-fill" id="progress"></div>
+                </div>
+            </div>
+
+            <!-- Flip Cards Section -->
+            <div class="flip-cards-section">
+                <h2 class="section-title">🔍 Características Únicas de los Riesgos en IA</h2>
+                <p style="text-align: center; color: #666; margin-bottom: 30px;">Haz clic en cada tarjeta para descubrir más detalles</p>
+                
+                <div class="flip-cards-container">
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="flip-icon">🌊</div>
+                                <div class="flip-title">Emergencia</div>
+                                <div class="flip-description">Riesgos que aparecen con la escala</div>
+                                <div class="click-hint">Click para más</div>
+                            </div>
+                            <div class="flip-card-back">
+                                <div class="flip-title">Implicación</div>
+                                <div class="flip-description">
+                                    Algunos riesgos solo se manifiestan cuando el sistema alcanza cierta escala o complejidad. Requiere pruebas exhaustivas en múltiples escalas y escenarios diferentes antes del despliegue completo.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="flip-icon">🔒</div>
+                                <div class="flip-title">Opacidad</div>
+                                <div class="flip-description">Comportamiento difícil de interpretar</div>
+                                <div class="click-hint">Click para más</div>
+                            </div>
+                            <div class="flip-card-back">
+                                <div class="flip-title">Implicación</div>
+                                <div class="flip-description">
+                                    El comportamiento interno de los modelos puede ser una "caja negra". Necesitamos herramientas especializadas de explicabilidad y auditoría para comprender las decisiones del modelo.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="flip-icon">📈</div>
+                                <div class="flip-title">Amplificación</div>
+                                <div class="flip-description">Errores que se multiplican rápidamente</div>
+                                <div class="click-hint">Click para más</div>
+                            </div>
+                            <div class="flip-card-back">
+                                <div class="flip-title">Implicación</div>
+                                <div class="flip-description">
+                                    Los errores pueden propagarse y multiplicarse exponencialmente en sistemas automatizados. Es crucial implementar circuit breakers y límites operacionales estrictos.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="flip-icon">♻️</div>
+                                <div class="flip-title">Persistencia</div>
+                                <div class="flip-description">Sesgos que se perpetúan</div>
+                                <div class="click-hint">Click para más</div>
+                            </div>
+                            <div class="flip-card-back">
+                                <div class="flip-title">Implicación</div>
+                                <div class="flip-description">
+                                    Los sesgos en los datos de entrenamiento pueden perpetuarse indefinidamente. Requiere monitoreo continuo, auditorías regulares y actualizaciones frecuentes del modelo.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accordion Section -->
+            <div class="accordion-section">
+                <h2 class="section-title">📊 Categorías de Riesgos Expandidas</h2>
+                
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div class="accordion-title">
+                                <div class="accordion-icon">🔧</div>
+                                <span>Riesgos Técnicos</span>
+                            </div>
+                            <div class="accordion-arrow">▼</div>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <div class="risk-category">
+                                    <h4>⚙️ Cuando la tecnología nos sorprende</h4>
+                                    <p>Los riesgos técnicos van más allá de simples fallas de sistema. En IA, incluyen comportamientos emergentes no anticipados.</p>
+                                    
+                                    <table class="risk-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tipo de Riesgo</th>
+                                                <th>Causa</th>
+                                                <th>Estrategia de Mitigación</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Degradación del Modelo</strong></td>
+                                                <td>Data drift, feedback loops negativos</td>
+                                                <td>Monitoreo continuo y reentrenamiento</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Dependencias Ocultas</strong></td>
+                                                <td>APIs descontinuadas, cambios externos</td>
+                                                <td>Abstracción de interfaces, múltiples proveedores</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Límites de Capacidad</strong></td>
+                                                <td>Escalamiento no previsto</td>
+                                                <td>Arquitectura escalable, auto-scaling</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div class="example-box">
+                                        <strong>💡 Caso Real:</strong>
+                                        Una empresa construyó su servicio completo sobre una API gratuita que fue descontinuada sin aviso, requiriendo un rediseño total con un costo de $500,000.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div class="accordion-title">
+                                <div class="accordion-icon">📁</div>
+                                <span>Riesgos de Datos</span>
+                            </div>
+                            <div class="accordion-arrow">▼</div>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <div class="risk-category">
+                                    <h4>🔥 El combustible contaminado</h4>
+                                    <p>Los datos son el alma de la IA, y los riesgos asociados son proporcionalmente críticos.</p>
+                                    
+                                    <table class="risk-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Problema de Calidad</th>
+                                                <th>Impacto en IA</th>
+                                                <th>Acción Correctiva</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Subrepresentación</strong></td>
+                                                <td>Sesgo sistemático</td>
+                                                <td>Aumentar diversidad de datos</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Datos Históricos Sesgados</strong></td>
+                                                <td>Perpetuación de prejuicios</td>
+                                                <td>Re-balanceo y limpieza</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Información Desactualizada</strong></td>
+                                                <td>Respuestas obsoletas</td>
+                                                <td>Actualización continua</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div class="example-box">
+                                        <strong>⚠️ Impacto Real:</strong>
+                                        Un sistema de IA para RRHH rechazaba sistemáticamente candidatos de ciertas universidades debido a sesgos en datos históricos de contratación.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div class="accordion-title">
+                                <div class="accordion-icon">👥</div>
+                                <span>Riesgos Organizacionales</span>
+                            </div>
+                            <div class="accordion-arrow">▼</div>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <div class="risk-category">
+                                    <h4>🤝 El factor humano</h4>
+                                    <p>La tecnología perfecta fracasa sin adopción humana adecuada.</p>
+                                    
+                                    <table class="risk-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Nivel de Resistencia</th>
+                                                <th>Manifestación</th>
+                                                <th>Estrategia de Abordaje</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Superficial</strong></td>
+                                                <td>Quejas menores</td>
+                                                <td>Capacitación básica</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Funcional</strong></td>
+                                                <td>Evitación de uso</td>
+                                                <td>Entrenamiento intensivo</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Emocional</strong></td>
+                                                <td>Sabotaje pasivo</td>
+                                                <td>Comunicación y garantías</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Existencial</strong></td>
+                                                <td>Oposición activa</td>
+                                                <td>Redefinición de roles</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div class="example-box">
+                                        <strong>✅ Estrategia Exitosa:</strong>
+                                        Un banco implementó IA gradualmente, comenzando como "asistente" que sugería respuestas a empleados antes de automatizar completamente.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div class="accordion-title">
+                                <div class="accordion-icon">⚖️</div>
+                                <span>Riesgos Éticos y Sociales</span>
+                            </div>
+                            <div class="accordion-arrow">▼</div>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <div class="risk-category">
+                                    <h4>🌍 La responsabilidad ampliada</h4>
+                                    <p>Los proyectos de IA cargan con responsabilidades éticas únicas.</p>
+                                    
+                                    <table class="risk-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Dimensión Ética</th>
+                                                <th>Riesgo Potencial</th>
+                                                <th>Salvaguarda Requerida</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Equidad</strong></td>
+                                                <td>Discriminación algorítmica</td>
+                                                <td>Auditorías de sesgo</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Transparencia</strong></td>
+                                                <td>Decisiones opacas</td>
+                                                <td>Explicabilidad obligatoria</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Privacidad</strong></td>
+                                                <td>Exposición de datos</td>
+                                                <td>Filtros de seguridad</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Autonomía</strong></td>
+                                                <td>Dependencia excesiva</td>
+                                                <td>Límites de automatización</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div class="example-box">
+                                        <strong>📊 Ejemplo Documentado:</strong>
+                                        Sistemas de IA en salud que funcionaban peor para minorías debido a datos de entrenamiento no representativos.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Section -->
+            <div class="process-section">
+                <h2 class="section-title">🔄 Proceso de Gestión de Riesgos</h2>
+                
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Identificación Proactiva</div>
+                        <div class="step-description">
+                            Usa la técnica del Pre-Mortem: imagina que el proyecto ha fracasado y trabaja hacia atrás para identificar posibles causas.
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Evaluación Multidimensional</div>
+                        <div class="step-description">
+                            Aplica la fórmula expandida: Riesgo = Probabilidad × Impacto × Velocidad × Detectabilidad.
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Estrategias de Respuesta</div>
+                        <div class="step-description">
+                            Implementa mitigación por diseño, human-in-the-loop, circuit breakers y validación multicapa.
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Monitoreo Inteligente</div>
+                        <div class="step-description">
+                            Establece dashboards con indicadores clave: confidence score, tasa de escalamiento, tiempo de respuesta.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drag and Drop Activity -->
+            <div class="activity-section">
+                <div class="activity-header">
+                    <h2>🎯 Actividad: Empareja Riesgos con Estrategias</h2>
+                    <p class="activity-instructions">Arrastra cada riesgo a su estrategia de mitigación correspondiente</p>
+                </div>
+
+                <div class="drag-drop-container">
+                    <div class="drag-items">
+                        <div class="column-title">Riesgos Identificados</div>
+                        <div id="risks-container">
+                            <div class="draggable" draggable="true" data-risk="1">
+                                Data Drift en el Modelo
+                            </div>
+                            <div class="draggable" draggable="true" data-risk="2">
+                                Resistencia del Personal
+                            </div>
+                            <div class="draggable" draggable="true" data-risk="3">
+                                Decisiones Opacas de IA
+                            </div>
+                            <div class="draggable" draggable="true" data-risk="4">
+                                API Externa Descontinuada
+                            </div>
+                            <div class="draggable" draggable="true" data-risk="5">
+                                Sesgo en Datos Históricos
+                            </div>
+                            <div class="draggable" draggable="true" data-risk="6">
+                                Escalamiento Inesperado
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="drop-zones">
+                        <div class="column-title">Estrategias de Mitigación</div>
+                        
+                        <div class="drop-zone-container">
+                            <div class="drop-zone-label">Monitoreo Continuo y Reentrenamiento</div>
+                            <div class="drop-zone" data-strategy="1"></div>
+                        </div>
+
+                        <div class="drop-zone-container">
+                            <div class="drop-zone-label">Implementación Gradual con Asistencia</div>
+                            <div class="drop-zone" data-strategy="2"></div>
+                        </div>
+
+                        <div class="drop-zone-container">
+                            <div class="drop-zone-label">Herramientas de Explicabilidad</div>
+                            <div class="drop-zone" data-strategy="3"></div>
+                        </div>
+
+                        <div class="drop-zone-container">
+                            <div class="drop-zone-label">Múltiples Proveedores y Abstracción</div>
+                            <div class="drop-zone" data-strategy="4"></div>
+                        </div>
+
+                        <div class="drop-zone-container">
+                            <div class="drop-zone-label">Auditorías de Sesgo y Re-balanceo</div>
+                            <div class="drop-zone" data-strategy="5"></div>
+                        </div>
+
+                        <div class="drop-zone-container">
+                            <div class="drop-zone-label">Circuit Breakers y Auto-scaling</div>
+                            <div class="drop-zone" data-strategy="6"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="check-button" onclick="checkAnswers()">Verificar Respuestas</button>
+
+                <div class="feedback" id="feedback">
+                    <h3>Resultados de la Actividad</h3>
+                    <div class="score" id="score">0/6</div>
+                    <p class="feedback-text" id="feedback-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Flip Card functionality
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+            updateProgress();
+        }
+
+        // Accordion functionality
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const allHeaders = document.querySelectorAll('.accordion-header');
+            const allContents = document.querySelectorAll('.accordion-content');
+
+            // Close all other accordions
+            allHeaders.forEach(h => {
+                if (h !== header) {
+                    h.classList.remove('active');
+                }
+            });
+            allContents.forEach(c => {
+                if (c !== content) {
+                    c.classList.remove('active');
+                }
+            });
+
+            // Toggle current accordion
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+            updateProgress();
+        }
+
+        // Progress indicator
+        function updateProgress() {
+            const flippedCards = document.querySelectorAll('.flip-card.flipped').length;
+            const activeAccordions = document.querySelectorAll('.accordion-header.active').length;
+            const total = 8; // 4 cards + 4 accordions
+            const progress = ((flippedCards + activeAccordions) / total) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        // Drag and Drop functionality
+        let draggedElement = null;
+        const correctAnswers = {
+            '1': '1', // Data Drift -> Monitoreo Continuo
+            '2': '2', // Resistencia -> Implementación Gradual
+            '3': '3', // Decisiones Opacas -> Explicabilidad
+            '4': '4', // API Descontinuada -> Múltiples Proveedores
+            '5': '5', // Sesgo -> Auditorías
+            '6': '6'  // Escalamiento -> Circuit Breakers
+        };
+
+        // Add event listeners to draggable elements
+        document.querySelectorAll('.draggable').forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+
+        // Add event listeners to drop zones
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', handleDragOver);
+            zone.addEventListener('drop', handleDrop);
+            zone.addEventListener('dragleave', handleDragLeave);
+        });
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            e.currentTarget.classList.remove('drag-over');
+            
+            // Clear any existing content
+            e.currentTarget.innerHTML = '';
+            
+            // Clone and append the dragged element
+            const clone = draggedElement.cloneNode(true);
+            clone.classList.remove('dragging');
+            e.currentTarget.appendChild(clone);
+            
+            // Remove the original element
+            draggedElement.remove();
+            
+            // Re-add event listeners to remaining draggables
+            document.querySelectorAll('.draggable').forEach(item => {
+                item.removeEventListener('dragstart', handleDragStart);
+                item.removeEventListener('dragend', handleDragEnd);
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+            
+            return false;
+        }
+
+        function checkAnswers() {
+            let correct = 0;
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            dropZones.forEach(zone => {
+                const strategyId = zone.dataset.strategy;
+                const droppedItem = zone.querySelector('.draggable');
+                
+                if (droppedItem) {
+                    const riskId = droppedItem.dataset.risk;
+                    
+                    if (correctAnswers[riskId] === strategyId) {
+                        zone.classList.add('correct');
+                        zone.classList.remove('incorrect');
+                        correct++;
+                    } else {
+                        zone.classList.add('incorrect');
+                        zone.classList.remove('correct');
+                    }
+                }
+            });
+            
+            // Show feedback
+            const feedback = document.getElementById('feedback');
+            const score = document.getElementById('score');
+            const feedbackText = document.getElementById('feedback-text');
+            
+            score.textContent = `${correct}/6`;
+            
+            if (correct === 6) {
+                feedbackText.textContent = '¡Excelente! Has dominado perfectamente las estrategias de mitigación de riesgos en proyectos de IA. Estás preparado para gestionar riesgos complejos.';
+            } else if (correct >= 4) {
+                feedbackText.textContent = '¡Muy bien! Tienes una buena comprensión de las estrategias de mitigación. Revisa las respuestas incorrectas para perfeccionar tu conocimiento.';
+            } else {
+                feedbackText.textContent = 'Necesitas reforzar el conocimiento sobre las estrategias de mitigación. Revisa el contenido del acordeón para entender mejor cada tipo de riesgo y su estrategia correspondiente.';
+            }
+            
+            feedback.classList.add('show');
+            feedback.scrollIntoView({ behavior: 'smooth' });
+            
+            // Disable button
+            document.querySelector('.check-button').disabled = true;
+        }
+
+        // Initialize progress
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+        });
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"cae65d1a24bc4fccbb90108b5f9f9679","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

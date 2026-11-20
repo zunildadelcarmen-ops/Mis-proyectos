@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Estrategia - Gemini & n8n</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --verde: #729E2E;
+            --celeste: #009EE3;
+            --amarillo: #E2A30B;
+            --naranjo: #DF501D;
+            --blanco: #FFFFFF;
+            --gris-muy-claro: #F8F9FA;
+            --gris-claro: #E8ECF0;
+            --texto: #2C3E50;
+            --texto-secundario: #5A6C7D;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #E6F3FB 0%, #F0F7E8 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--texto);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--blanco);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            margin-bottom: 100px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--celeste) 0%, var(--verde) 100%);
+            color: var(--blanco);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+
+        .tools-badges {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .tool-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-container {
+            padding: 20px 30px;
+            background: var(--gris-muy-claro);
+            border-bottom: 1px solid var(--gris-claro);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gris-claro);
+            z-index: 0;
+        }
+
+        .progress-line-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--verde), var(--celeste));
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--blanco);
+            border: 3px solid var(--gris-claro);
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-circle {
+            background: var(--celeste);
+            border-color: var(--celeste);
+            color: var(--blanco);
+            transform: scale(1.1);
+        }
+
+        .step.completed .step-circle {
+            background: var(--verde);
+            border-color: var(--verde);
+            color: var(--blanco);
+        }
+
+        .step-label {
+            font-size: 13px;
+            color: var(--texto-secundario);
+            font-weight: 500;
+        }
+
+        .step.active .step-label {
+            color: var(--celeste);
+            font-weight: 600;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--texto);
+            margin-bottom: 10px;
+        }
+
+        .section-description {
+            color: var(--texto-secundario);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--texto);
+            margin-bottom: 8px;
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: var(--texto-secundario);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--celeste);
+            box-shadow: 0 0 0 3px rgba(0,158,227,0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 10px;
+            font-size: 15px;
+            background: var(--blanco);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--celeste);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 10px;
+            font-size: 15px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--celeste);
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .radio-card {
+            padding: 15px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .radio-card:hover {
+            border-color: var(--celeste);
+            background: var(--gris-muy-claro);
+        }
+
+        .radio-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .radio-card input[type="radio"]:checked + .radio-content {
+            border-color: var(--celeste);
+            background: linear-gradient(135deg, rgba(0,158,227,0.05), rgba(0,158,227,0.02));
+        }
+
+        .radio-content {
+            display: block;
+            padding: 0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .radio-title {
+            font-weight: 600;
+            color: var(--texto);
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .radio-description {
+            font-size: 13px;
+            color: var(--texto-secundario);
+        }
+
+        .checkbox-group {
+            display: grid;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            padding: 12px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--celeste);
+            background: var(--gris-muy-claro);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            flex: 1;
+        }
+
+        .checkbox-title {
+            font-weight: 500;
+            color: var(--texto);
+            margin-bottom: 2px;
+        }
+
+        .checkbox-description {
+            font-size: 13px;
+            color: var(--texto-secundario);
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .slider-value {
+            font-weight: 600;
+            color: var(--celeste);
+            font-size: 18px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--gris-claro);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--celeste);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--celeste);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(226,163,11,0.08), rgba(226,163,11,0.03));
+            border-left: 4px solid var(--amarillo);
+            border-radius: 10px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: var(--amarillo);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-box-text {
+            color: var(--texto-secundario);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--celeste), var(--verde));
+            color: var(--blanco);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,158,227,0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--blanco);
+            color: var(--texto-secundario);
+            border: 2px solid var(--gris-claro);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--celeste);
+            color: var(--celeste);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Resultados */
+        .results-container {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .strategy-header {
+            background: linear-gradient(135deg, var(--celeste), var(--verde));
+            color: var(--blanco);
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .strategy-header h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .strategy-header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--gris-muy-claro);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--celeste);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: var(--texto-secundario);
+        }
+
+        .phase-card {
+            background: var(--blanco);
+            border: 2px solid var(--gris-claro);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .phase-number {
+            width: 50px;
+            height: 50px;
+            background: var(--verde);
+            color: var(--blanco);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .phase-info {
+            flex: 1;
+        }
+
+        .phase-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--texto);
+            margin-bottom: 5px;
+        }
+
+        .phase-duration {
+            font-size: 14px;
+            color: var(--texto-secundario);
+        }
+
+        .phase-tasks {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .phase-task {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gris-claro);
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+
+        .phase-task:last-child {
+            border-bottom: none;
+        }
+
+        .task-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--verde);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--verde);
+            font-size: 14px;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            color: var(--texto);
+            margin-bottom: 4px;
+        }
+
+        .task-description {
+            font-size: 13px;
+            color: var(--texto-secundario);
+            line-height: 1.5;
+        }
+
+        .download-section {
+            background: linear-gradient(135deg, rgba(114,158,46,0.1), rgba(0,158,227,0.1));
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .download-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--texto);
+            margin-bottom: 10px;
+        }
+
+        .download-description {
+            color: var(--texto-secundario);
+            margin-bottom: 20px;
+        }
+
+        .btn-download {
+            background: var(--verde);
+            color: var(--blanco);
+            padding: 16px 40px;
+            font-size: 17px;
+        }
+
+        .btn-download:hover {
+            background: #5a7f23;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(114,158,46,0.3);
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--verde);
+            color: var(--blanco);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideUp 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            .radio-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons-container {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 Generador de Estrategia Personalizada</h1>
+            <p>Diseña tu plan de implementación con IA y Automatización</p>
+            <div class="tools-badges">
+                <div class="tool-badge">
+                    <span>✨</span>
+                    <span>Gemini AI</span>
+                </div>
+                <div class="tool-badge">
+                    <span>⚡</span>
+                    <span>n8n Automation</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line">
+                    <div class="progress-line-fill" id="progressLine"></div>
+                </div>
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Contexto</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Objetivos</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Recursos</div>
+                </div>
+                <div class="step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Prioridades</div>
+                </div>
+                <div class="step" id="step5">
+                    <div class="step-circle">5</div>
+                    <div class="step-label">Estrategia</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Step 1: Contexto -->
+            <div class="form-section active" id="section1">
+                <h2 class="section-title">📊 Cuéntanos sobre tu situación actual</h2>
+                <p class="section-description">Esta información nos ayudará a crear una estrategia adaptada a tu realidad</p>
+
+                <div class="form-group">
+                    <label class="form-label">Nombre de tu empresa/proyecto</label>
+                    <input type="text" class="form-input" id="companyName" placeholder="Ej: Mi Empresa S.A.">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Sector o industria</label>
+                    <select class="form-select" id="industry">
+                        <option value="">Selecciona una opción</option>
+                        <option value="retail">Retail / E-commerce</option>
+                        <option value="servicios">Servicios</option>
+                        <option value="educacion">Educación</option>
+                        <option value="salud">Salud</option>
+                        <option value="finanzas">Finanzas</option>
+                        <option value="manufactura">Manufactura</option>
+                        <option value="tecnologia">Tecnología</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tamaño del equipo</label>
+                    <div class="radio-group">
+                        <label class="radio-card">
+                            <input type="radio" name="teamSize" value="1-5">
+                            <div class="radio-content">
+                                <div class="radio-title">1-5 personas</div>
+                                <div class="radio-description">Equipo pequeño o startup</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="teamSize" value="6-20">
+                            <div class="radio-content">
+                                <div class="radio-title">6-20 personas</div>
+                                <div class="radio-description">Equipo mediano</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="teamSize" value="21-50">
+                            <div class="radio-content">
+                                <div class="radio-title">21-50 personas</div>
+                                <div class="radio-description">Departamento grande</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="teamSize" value="50+">
+                            <div class="radio-content">
+                                <div class="radio-title">+50 personas</div>
+                                <div class="radio-description">Empresa consolidada</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Describe brevemente tu proceso actual que quieres automatizar</label>
+                    <span class="form-help">Ejemplo: "Recibimos 100 correos diarios de clientes que clasificamos manualmente"</span>
+                    <textarea class="form-textarea" id="currentProcess" placeholder="Describe tu proceso actual..."></textarea>
+                </div>
+
+                <div class="buttons-container">
+                    <button class="btn btn-secondary" disabled>
+                        ← Anterior
+                    </button>
+                    <button class="btn btn-primary" onclick="nextStep()">
+                        Siguiente →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Objetivos -->
+            <div class="form-section" id="section2">
+                <h2 class="section-title">🎯 Define tus objetivos</h2>
+                <p class="section-description">¿Qué esperas lograr con la implementación de IA y automatización?</p>
+
+                <div class="form-group">
+                    <label class="form-label">¿Cuáles son tus principales objetivos?</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="objectives" value="reducir-tiempo">
+                            <div class="checkbox-label">
+                                <div class="checkbox-title">Reducir tiempo en tareas repetitivas</div>
+                                <div class="checkbox-description">Automatizar procesos manuales que consumen mucho tiempo</div>
+                            </div>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="objectives" value="mejorar-calidad">
+                            <div class="checkbox-label">
+                                <div class="checkbox-title">Mejorar calidad y consistencia</div>
+                                <div class="checkbox-description">Reducir errores humanos y estandarizar resultados</div>
+                            </div>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="objectives" value="escalar">
+                            <div class="checkbox-label">
+                                <div class="checkbox-title">Escalar operaciones</div>
+                                <div class="checkbox-description">Manejar mayor volumen sin aumentar personal</div>
+                            </div>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="objectives" value="insights">
+                            <div class="checkbox-label">
+                                <div class="checkbox-title">Obtener insights de datos</div>
+                                <div class="checkbox-description">Analizar información para tomar mejores decisiones</div>
+                            </div>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="objectives" value="experiencia-cliente">
+                            <div class="checkbox-label">
+                                <div class="checkbox-title">Mejorar experiencia del cliente</div>
+                                <div class="checkbox-description">Respuestas más rápidas y personalizadas</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">¿Cuántas horas semanales dedicas actualmente a este proceso?</label>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Horas por semana</span>
+                            <span class="slider-value" id="hoursValue">20</span>
+                        </div>
+                        <input type="range" class="slider" id="hoursSlider" min="1" max="100" value="20">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">¿Cuál sería el impacto si este proceso mejora un 50%?</label>
+                    <textarea class="form-textarea" id="expectedImpact" placeholder="Ej: Podríamos atender el doble de clientes, reducir costos operativos en $X..."></textarea>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">💡 Tip</div>
+                    <div class="info-box-text">
+                        Sé específico con tus objetivos. Esto nos ayudará a diseñar métricas claras para medir el éxito de tu implementación.
+                    </div>
+                </div>
+
+                <div class="buttons-container">
+                    <button class="btn btn-secondary" onclick="previousStep()">
+                        ← Anterior
+                    </button>
+                    <button class="btn btn-primary" onclick="nextStep()">
+                        Siguiente →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Recursos -->
+            <div class="form-section" id="section3">
+                <h2 class="section-title">💰 Evaluemos tus recursos disponibles</h2>
+                <p class="section-description">Esto nos ayudará a proponer soluciones realistas y alcanzables</p>
+
+                <div class="form-group">
+                    <label class="form-label">Presupuesto mensual estimado para herramientas</label>
+                    <div class="radio-group">
+                        <label class="radio-card">
+                            <input type="radio" name="budget" value="0">
+                            <div class="radio-content">
+                                <div class="radio-title">$0 (Solo gratuito)</div>
+                                <div class="radio-description">Versiones free y open source</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="budget" value="1-50">
+                            <div class="radio-content">
+                                <div class="radio-title">$1 - $50 USD</div>
+                                <div class="radio-description">Herramientas básicas</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="budget" value="51-200">
+                            <div class="radio-content">
+                                <div class="radio-title">$51 - $200 USD</div>
+                                <div class="radio-description">Planes profesionales</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="budget" value="200+">
+                            <div class="radio-content">
+                                <div class="radio-title">+$200 USD</div>
+                                <div class="radio-description">Soluciones empresariales</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nivel técnico del equipo</label>
+                    <div class="radio-group">
+                        <label class="radio-card">
+                            <input type="radio" name="techLevel" value="basico">
+                            <div class="radio-content">
+                                <div class="radio-title">Básico</div>
+                                <div class="radio-description">Usuarios de office y email</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="techLevel" value="intermedio">
+                            <div class="radio-content">
+                                <div class="radio-title">Intermedio</div>
+                                <div class="radio-description">Manejo de CRM y herramientas cloud</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="techLevel" value="avanzado">
+                            <div class="radio-content">
+                                <div class="radio-title">Avanzado</div>
+                                <div class="radio-description">Experiencia con APIs y código</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tiempo disponible para implementación</label>
+                    <div class="radio-group">
+                        <label class="radio-card">
+                            <input type="radio" name="timeline" value="urgente">
+                            <div class="radio-content">
+                                <div class="radio-title">Urgente (< 1 mes)</div>
+                                <div class="radio-description">Necesito resultados rápidos</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="timeline" value="normal">
+                            <div class="radio-content">
+                                <div class="radio-title">Normal (1-3 meses)</div>
+                                <div class="radio-description">Tengo tiempo para hacerlo bien</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="timeline" value="flexible">
+                            <div class="radio-content">
+                                <div class="radio-title">Flexible (3+ meses)</div>
+                                <div class="radio-description">Puedo ir paso a paso</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="buttons-container">
+                    <button class="btn btn-secondary" onclick="previousStep()">
+                        ← Anterior
+                    </button>
+                    <button class="btn btn-primary" onclick="nextStep()">
+                        Siguiente →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Prioridades -->
+            <div class="form-section" id="section4">
+                <h2 class="section-title">⚖️ Establece tus prioridades</h2>
+                <p class="section-description">Ayúdanos a entender qué es más importante para ti</p>
+
+                <div class="form-group">
+                    <label class="form-label">¿Qué caso de uso quieres implementar primero?</label>
+                    <div class="radio-group">
+                        <label class="radio-card">
+                            <input type="radio" name="firstUseCase" value="atencion-cliente">
+                            <div class="radio-content">
+                                <div class="radio-title">Atención al cliente</div>
+                                <div class="radio-description">Respuestas automáticas, clasificación de tickets</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="firstUseCase" value="contenido">
+                            <div class="radio-content">
+                                <div class="radio-title">Generación de contenido</div>
+                                <div class="radio-description">Blogs, redes sociales, emails</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="firstUseCase" value="analisis">
+                            <div class="radio-content">
+                                <div class="radio-title">Análisis de datos</div>
+                                <div class="radio-description">Reportes, insights, predicciones</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="firstUseCase" value="procesos">
+                            <div class="radio-content">
+                                <div class="radio-title">Automatización de procesos</div>
+                                <div class="radio-description">Flujos de trabajo, integraciones</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">¿Qué factor es más crítico para ti?</label>
+                    <div class="radio-group">
+                        <label class="radio-card">
+                            <input type="radio" name="criticalFactor" value="costo">
+                            <div class="radio-content">
+                                <div class="radio-title">Minimizar costos</div>
+                                <div class="radio-description">Usar principalmente herramientas gratuitas</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="criticalFactor" value="velocidad">
+                            <div class="radio-content">
+                                <div class="radio-title">Velocidad de implementación</div>
+                                <div class="radio-description">Resultados rápidos aunque no perfectos</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="criticalFactor" value="calidad">
+                            <div class="radio-content">
+                                <div class="radio-title">Máxima calidad</div>
+                                <div class="radio-description">Solución robusta aunque tome más tiempo</div>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="criticalFactor" value="facilidad">
+                            <div class="radio-content">
+                                <div class="radio-title">Facilidad de uso</div>
+                                <div class="radio-description">Simple para usuarios no técnicos</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">¿Tienes alguna restricción o consideración especial?</label>
+                    <span class="form-help">Ejemplo: "Debe cumplir con GDPR", "No podemos usar cloud", etc.</span>
+                    <textarea class="form-textarea" id="restrictions" placeholder="Opcional: menciona cualquier restricción..."></textarea>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">🎯 Casi listo</div>
+                    <div class="info-box-text">
+                        En el siguiente paso generaremos tu estrategia personalizada basada en toda la información que nos proporcionaste.
+                    </div>
+                </div>
+
+                <div class="buttons-container">
+                    <button class="btn btn-secondary" onclick="previousStep()">
+                        ← Anterior
+                    </button>
+                    <button class="btn btn-primary" onclick="generateStrategy()">
+                        Generar Estrategia 🚀
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 5: Resultados -->
+            <div class="form-section" id="section5">
+                <div class="results-container" id="resultsContainer">
+                    <!-- Los resultados se generarán dinámicamente aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Estado de la aplicación
+        let currentStep = 1;
+        const totalSteps = 5;
+        let userData = {};
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            // Slider de horas
+            const hoursSlider = document.getElementById('hoursSlider');
+            const hoursValue = document.getElementById('hoursValue');
+            
+            if (hoursSlider) {
+                hoursSlider.addEventListener('input', (e) => {
+                    hoursValue.textContent = e.target.value;
+                });
+            }
+
+            // Auto-guardar datos
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                element.addEventListener('change', saveData);
+            });
+        });
+
+        // Navegación
+        function nextStep() {
+            if (validateStep(currentStep)) {
+                saveData();
+                currentStep++;
+                updateUI();
+            }
+        }
+
+        function previousStep() {
+            currentStep--;
+            updateUI();
+        }
+
+        // Actualizar interfaz
+        function updateUI() {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Mostrar sección actual
+            document.getElementById(`section${currentStep}`).classList.add('active');
+
+            // Actualizar progreso
+            updateProgress();
+
+            // Scroll al top
+            window.scrollTo(0, 0);
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress() {
+            const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            document.getElementById('progressLine').style.width = `${progressPercentage}%`;
+
+            // Actualizar pasos
+            for (let i = 1; i <= totalSteps; i++) {
+                const step = document.getElementById(`step${i}`);
+                if (i < currentStep) {
+                    step.classList.add('completed');
+                    step.classList.remove('active');
+                } else if (i === currentStep) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else {
+                    step.classList.remove('active', 'completed');
+                }
+            }
+        }
+
+        // Validar paso actual
+        function validateStep(step) {
+            let isValid = true;
+
+            switch(step) {
+                case 1:
+                    const companyName = document.getElementById('companyName').value;
+                    const industry = document.getElementById('industry').value;
+                    const teamSize = document.querySelector('input[name="teamSize"]:checked');
+                    const currentProcess = document.getElementById('currentProcess').value;
+
+                    if (!companyName || !industry || !teamSize || !currentProcess) {
+                        showToast('Por favor completa todos los campos requeridos');
+                        isValid = false;
+                    }
+                    break;
+
+                case 2:
+                    const objectives = document.querySelectorAll('input[name="objectives"]:checked');
+                    const expectedImpact = document.getElementById('expectedImpact').value;
+
+                    if (objectives.length === 0 || !expectedImpact) {
+                        showToast('Por favor selecciona al menos un objetivo y describe el impacto esperado');
+                        isValid = false;
+                    }
+                    break;
+
+                case 3:
+                    const budget = document.querySelector('input[name="budget"]:checked');
+                    const techLevel = document.querySelector('input[name="techLevel"]:checked');
+                    const timeline = document.querySelector('input[name="timeline"]:checked');
+
+                    if (!budget || !techLevel || !timeline) {
+                        showToast('Por favor completa todos los campos de recursos');
+                        isValid = false;
+                    }
+                    break;
+
+                case 4:
+                    const firstUseCase = document.querySelector('input[name="firstUseCase"]:checked');
+                    const criticalFactor = document.querySelector('input[name="criticalFactor"]:checked');
+
+                    if (!firstUseCase || !criticalFactor) {
+                        showToast('Por favor define tus prioridades');
+                        isValid = false;
+                    }
+                    break;
+            }
+
+            return isValid;
+        }
+
+        // Guardar datos
+        function saveData() {
+            // Recopilar todos los datos del formulario
+            userData = {
+                // Step 1
+                companyName: document.getElementById('companyName')?.value || '',
+                industry: document.getElementById('industry')?.value || '',
+                teamSize: document.querySelector('input[name="teamSize"]:checked')?.value || '',
+                currentProcess: document.getElementById('currentProcess')?.value || '',
+
+                // Step 2
+                objectives: Array.from(document.querySelectorAll('input[name="objectives"]:checked')).map(cb => cb.value),
+                hoursPerWeek: document.getElementById('hoursSlider')?.value || 20,
+                expectedImpact: document.getElementById('expectedImpact')?.value || '',
+
+                // Step 3
+                budget: document.querySelector('input[name="budget"]:checked')?.value || '',
+                techLevel: document.querySelector('input[name="techLevel"]:checked')?.value || '',
+                timeline: document.querySelector('input[name="timeline"]:checked')?.value || '',
+
+                // Step 4
+                firstUseCase: document.querySelector('input[name="firstUseCase"]:checked')?.value || '',
+                criticalFactor: document.querySelector('input[name="criticalFactor"]:checked')?.value || '',
+                restrictions: document.getElementById('restrictions')?.value || ''
+            };
+        }
+
+        // Generar estrategia
+        function generateStrategy() {
+            if (!validateStep(4)) return;
+
+            saveData();
+            currentStep = 5;
+            updateUI();
+            
+            showToast('Generando tu estrategia personalizada...');
+
+            // Simular generación de estrategia
+            setTimeout(() => {
+                displayStrategy();
+            }, 1500);
+        }
+
+        // Mostrar estrategia generada
+        function displayStrategy() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            // Calcular métricas basadas en los datos del usuario
+            const hoursPerWeek = parseInt(userData.hoursPerWeek);
+            const hoursSaved = Math.round(hoursPerWeek * 0.6); // 60% de ahorro estimado
+            const costSaved = hoursSaved * 25; // $25 USD por hora promedio
+            const roi = userData.budget === '0' ? 'Infinito' : `${Math.round((costSaved * 4) / 100) * 100}%`;
+            const implementationWeeks = userData.timeline === 'urgente' ? 4 : userData.timeline === 'normal' ? 8 : 12;
+
+            // Generar fases según el caso de uso y prioridades
+            const phases = generatePhases(userData);
+
+            resultsContainer.innerHTML = `
+                <div class="strategy-header">
+                    <h2>✨ Tu Estrategia Personalizada</h2>
+                    <p>${userData.companyName} - Transformación Digital con IA</p>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-value">${hoursSaved}h</span>
+                        <span class="metric-label">Ahorro semanal estimado</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">$${costSaved}</span>
+                        <span class="metric-label">Ahorro semanal en USD</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">${roi}</span>
+                        <span class="metric-label">ROI estimado</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">${implementationWeeks} sem</span>
+                        <span class="metric-label">Tiempo total</span>
+                    </div>
+                </div>
+
+                ${phases.map((phase, index) => `
+                    <div class="phase-card">
+                        <div class="phase-header">
+                            <div class="phase-number">${index + 1}</div>
+                            <div class="phase-info">
+                                <div class="phase-title">${phase.title}</div>
+                                <div class="phase-duration">${phase.duration}</div>
+                            </div>
+                        </div>
+                        <ul class="phase-tasks">
+                            ${phase.tasks.map(task => `
+                                <li class="phase-task">
+                                    <div class="task-check">✓</div>
+                                    <div class="task-content">
+                                        <div class="task-title">${task.title}</div>
+                                        <div class="task-description">${task.description}</div>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `).join('')}
+
+                <div class="download-section">
+                    <h3 class="download-title">📥 Descarga tu Plan Completo</h3>
+                    <p class="download-description">
+                        Obtén tu estrategia detallada con códigos de ejemplo, enlaces a recursos y checklist de implementación
+                    </p>
+                    <button class="btn btn-download" onclick="downloadStrategy()">
+                        Descargar Plan Detallado (PDF)
+                    </button>
+                </div>
+            `;
+        }
+
+        // Generar fases basadas en los datos del usuario
+        function generatePhases(data) {
+            const phases = [];
+
+            // Fase 1: Configuración inicial
+            const setupPhase = {
+                title: 'Configuración Inicial',
+                duration: data.timeline === 'urgente' ? 'Semana 1' : 'Semanas 1-2',
+                tasks: []
+            };
+
+            // Personalizar tareas según presupuesto
+            if (data.budget === '0') {
+                setupPhase.tasks.push(
+                    {
+                        title: 'Configurar Gemini AI (Versión Gratuita)',
+                        description: 'Crear cuenta en Google AI Studio y obtener API Key gratuita ($300 en créditos)'
+                    },
+                    {
+                        title: 'Instalar n8n self-hosted',
+                        description: 'Configurar n8n localmente o en servidor propio (100% gratuito)'
+                    }
+                );
+            } else {
+                setupPhase.tasks.push(
+                    {
+                        title: 'Configurar Gemini Pro',
+                        description: 'Cuenta empresarial con límites extendidos y soporte prioritario'
+                    },
+                    {
+                        title: 'Configurar n8n Cloud',
+                        description: 'Versión cloud con backups automáticos y alta disponibilidad'
+                    }
+                );
+            }
+
+            setupPhase.tasks.push({
+                title: 'Preparar datos de prueba',
+                description: `Recopilar 20-30 ejemplos reales de ${data.currentProcess}`
+            });
+
+            phases.push(setupPhase);
+
+            // Fase 2: Primer prototipo
+            const prototypePhase = {
+                title: getPhaseTitleByUseCase(data.firstUseCase),
+                duration: data.timeline === 'urgente' ? 'Semana 2' : 'Semanas 3-4',
+                tasks: getTasksByUseCase(data.firstUseCase, data.techLevel)
+            };
+
+            phases.push(prototypePhase);
+
+            // Fase 3: Optimización
+            phases.push({
+                title: 'Optimización y Testing',
+                duration: data.timeline === 'urgente' ? 'Semana 3' : 'Semanas 5-6',
+                tasks: [
+                    {
+                        title: 'Ajustar prompts de Gemini',
+                        description: 'Mejorar precisión mediante few-shot learning y ejemplos específicos'
+                    },
+                    {
+                        title: 'Implementar manejo de errores',
+                        description: 'Agregar reintentos automáticos y notificaciones de fallos'
+                    },
+                    {
+                        title: 'Optimizar costos',
+                        description: 'Implementar caché y batch processing para reducir llamadas a API'
+                    },
+                    {
+                        title: 'Validar con usuarios reales',
+                        description: 'Prueba piloto con 5-10 usuarios del equipo'
+                    }
+                ]
+            });
+
+            // Fase 4: Documentación y training
+            phases.push({
+                title: 'Documentación y Capacitación',
+                duration: data.timeline === 'urgente' ? 'Semana 4' : 'Semanas 7-8',
+                tasks: [
+                    {
+                        title: 'Crear guía de usuario',
+                        description: 'Documentación paso a paso con capturas de pantalla'
+                    },
+                    {
+                        title: 'Grabar videos tutoriales',
+                        description: 'Videos de 3-5 minutos para casos de uso comunes'
+                    },
+                    {
+                        title: 'Capacitar al equipo',
+                        description: `Sesión de training adaptada para nivel ${data.techLevel}`
+                    },
+                    {
+                        title: 'Establecer canal de soporte',
+                        description: 'Crear grupo de Slack/Teams para resolver dudas'
+                    }
+                ]
+            });
+
+            // Fase 5: Escalamiento (si no es urgente)
+            if (data.timeline !== 'urgente') {
+                phases.push({
+                    title: 'Escalamiento y Mejora Continua',
+                    duration: 'Semanas 9+',
+                    tasks: [
+                        {
+                            title: 'Expandir a otros casos de uso',
+                            description: 'Aplicar el modelo a procesos similares'
+                        },
+                        {
+                            title: 'Monitorear métricas',
+                            description: 'Dashboard con KPIs de uso, ahorro y satisfacción'
+                        },
+                        {
+                            title: 'Iterar basado en feedback',
+                            description: 'Mejoras mensuales según uso real'
+                        },
+                        {
+                            title: 'Compartir resultados',
+                            description: 'Presentar ROI y casos de éxito a stakeholders'
+                        }
+                    ]
+                });
+            }
+
+            return phases;
+        }
+
+        // Obtener título de fase según caso de uso
+        function getPhaseTitleByUseCase(useCase) {
+            const titles = {
+                'atencion-cliente': 'Automatización de Atención al Cliente',
+                'contenido': 'Generación Automatizada de Contenido',
+                'analisis': 'Pipeline de Análisis de Datos',
+                'procesos': 'Automatización de Procesos'
+            };
+            return titles[useCase] || 'Desarrollo del Primer Caso de Uso';
+        }
+
+        // Obtener tareas según caso de uso
+        function getTasksByUseCase(useCase, techLevel) {
+            const taskSets = {
+                'atencion-cliente': [
+                    {
+                        title: 'Crear prompt de clasificación',
+                        description: 'Prompt en Gemini para categorizar emails/tickets automáticamente'
+                    },
+                    {
+                        title: 'Configurar workflow en n8n',
+                        description: 'Gmail → Gemini → Router → Respuesta/Escalamiento'
+                    },
+                    {
+                        title: 'Crear templates de respuesta',
+                        description: 'Plantillas personalizadas para cada categoría'
+                    },
+                    {
+                        title: 'Configurar notificaciones',
+                        description: 'Alertas para casos urgentes o complejos'
+                    }
+                ],
+                'contenido': [
+                    {
+                        title: 'Definir estructura de contenido',
+                        description: 'Templates y formatos para cada tipo de contenido'
+                    },
+                    {
+                        title: 'Crear prompts especializados',
+                        description: 'Prompts optimizados para blog, redes sociales, emails'
+                    },
+                    {
+                        title: 'Automatizar publicación',
+                        description: 'Workflow n8n para publicar en múltiples canales'
+                    },
+                    {
+                        title: 'Implementar revisión',
+                        description: 'Proceso de aprobación antes de publicación'
+                    }
+                ],
+                'analisis': [
+                    {
+                        title: 'Conectar fuentes de datos',
+                        description: 'Integrar Google Sheets, bases de datos, APIs'
+                    },
+                    {
+                        title: 'Crear prompts de análisis',
+                        description: 'Prompts para extraer insights y generar reportes'
+                    },
+                    {
+                        title: 'Automatizar reportes',
+                        description: 'Generación y envío automático de informes'
+                    },
+                    {
+                        title: 'Crear dashboard',
+                        description: 'Visualización en tiempo real de métricas clave'
+                    }
+                ],
+                'procesos': [
+                    {
+                        title: 'Mapear proceso actual',
+                        description: 'Documentar flujo completo con puntos de decisión'
+                    },
+                    {
+                        title: 'Diseñar workflow optimizado',
+                        description: 'Nuevo flujo con automatización en puntos clave'
+                    },
+                    {
+                        title: 'Integrar sistemas',
+                        description: 'Conectar todas las herramientas involucradas'
+                    },
+                    {
+                        title: 'Implementar logs',
+                        description: 'Sistema de registro para auditoría y mejoras'
+                    }
+                ]
+            };
+
+            return taskSets[useCase] || [];
+        }
+
+        // Descargar estrategia
+        function downloadStrategy() {
+            const strategy = generateDetailedStrategy();
+            
+            const blob = new Blob([strategy], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Estrategia_${userData.companyName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showToast('✅ Estrategia descargada exitosamente');
+        }
+
+        // Generar estrategia detallada para descarga
+        function generateDetailedStrategy() {
+            const date = new Date().toLocaleDateString('es-ES');
+            
+            return `
+ESTRATEGIA DE IMPLEMENTACIÓN PERSONALIZADA
+===========================================
+Empresa: ${userData.companyName}
+Fecha: ${date}
+Generado por: Simulador de Transformación Digital con IA
+
+RESUMEN EJECUTIVO
+-----------------
+Sector: ${userData.industry}
+Tamaño del equipo: ${userData.teamSize} personas
+Proceso a automatizar: ${userData.currentProcess}
+Tiempo de implementación: ${userData.timeline}
+Presupuesto: ${userData.budget === '0' ? 'Solo herramientas gratuitas' : '$' + userData.budget + ' USD/mes'}
+Nivel técnico: ${userData.techLevel}
+
+OBJETIVOS PRINCIPALES
+---------------------
+${userData.objectives.map(obj => '✓ ' + obj.replace('-', ' ')).join('\n')}
+
+Impacto esperado: ${userData.expectedImpact}
+Horas semanales actuales: ${userData.hoursPerWeek}
+Ahorro estimado: ${Math.round(userData.hoursPerWeek * 0.6)} horas/semana
+
+ESTRATEGIA RECOMENDADA
+----------------------
+
+${userData.budget === '0' ? `
+CONFIGURACIÓN GRATUITA OPTIMIZADA
+==================================
+
+1. GEMINI AI (GRATIS)
+   - Registrarse en: https://makersuite.google.com
+   - Obtener API Key gratuita
+   - Límites: 60 consultas/minuto
+   - Créditos iniciales: $300 USD
+
+   Código de ejemplo para tu caso de uso:
+   ----------------------------------------
+   const prompt = \`
+   ${getExamplePrompt(userData.firstUseCase)}
+   \`;
+
+2. N8N SELF-HOSTED (GRATIS)
+   - Instalación local: npm install -g n8n
+   - Documentación: https://docs.n8n.io
+   - Workflows ilimitados
+   - Sin restricciones de ejecución
+
+   Workflow básico para empezar:
+   ------------------------------
+   {
+     "nodes": [
+       {
+         "name": "Webhook",
+         "type": "n8n-nodes-base.webhook",
+         "position": [250, 300]
+       },
+       {
+         "name": "Gemini",
+         "type": "n8n-nodes-base.httpRequest",
+         "position": [450, 300],
+         "parameters": {
+           "url": "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+           "method": "POST",
+           "authentication": "genericCredentialType",
+           "genericAuthType": "httpHeaderAuth"
+         }
+       }
+     ]
+   }
+` : `
+CONFIGURACIÓN PROFESIONAL
+=========================
+
+1. GEMINI PRO
+   - Plan recomendado: Pay-as-you-go
+   - Costo estimado: $0.00025 por 1K caracteres
+   - Sin límites de rate
+   - Soporte prioritario
+
+2. N8N CLOUD
+   - Plan Starter: $20/mes
+   - 2,500 ejecuciones de workflow
+   - Backups automáticos
+   - SSL incluido
+`}
+
+PLAN DE IMPLEMENTACIÓN DETALLADO
+=================================
+
+${generateDetailedPhases(userData)}
+
+MÉTRICAS DE ÉXITO
+-----------------
+1. Reducción de tiempo: Mínimo 50% en el proceso objetivo
+2. Precisión: >90% en clasificación/respuestas automáticas
+3. Adopción del equipo: 100% en ${userData.timeline === 'urgente' ? '2 semanas' : '1 mes'}
+4. ROI: Positivo desde el ${userData.timeline === 'urgente' ? 'primer' : 'segundo'} mes
+
+RECURSOS ADICIONALES
+--------------------
+📚 Documentación:
+- Gemini AI Docs: https://ai.google.dev/docs
+- n8n Academy: https://n8n.io/academy
+- Prompt Engineering: https://www.promptingguide.ai
+
+🎥 Videos recomendados:
+- Gemini for Beginners: https://www.youtube.com/watch?v=...
+- n8n Crash Course: https://www.youtube.com/watch?v=...
+
+👥 Comunidades:
+- n8n Community: https://community.n8n.io
+- Google AI Discord: https://discord.gg/googleai
+
+CÓDIGOS Y EJEMPLOS LISTOS PARA USAR
+====================================
+
+${getFullExampleCode(userData)}
+
+PRÓXIMOS PASOS INMEDIATOS
+--------------------------
+1. HOY: Crear cuentas en Gemini y n8n
+2. MAÑANA: Configurar primer workflow de prueba
+3. ESTA SEMANA: Procesar 10 casos reales
+4. PRÓXIMA SEMANA: Ajustar basado en resultados
+
+SOPORTE Y CONTACTO
+------------------
+Para dudas sobre esta estrategia:
+- Revisa la documentación incluida
+- Únete a las comunidades mencionadas
+- Experimenta con los ejemplos proporcionados
+
+¡Tu transformación digital comienza ahora!
+
+---
+Nota: Esta estrategia fue generada específicamente para ${userData.companyName} 
+basándose en sus necesidades y recursos únicos. Los resultados pueden variar 
+según la implementación específica.
+            `;
+        }
+
+        // Obtener prompt de ejemplo según caso de uso
+        function getExamplePrompt(useCase) {
+            const prompts = {
+                'atencion-cliente': `Actúa como asistente de soporte.
+   Clasifica el siguiente ticket de cliente:
+   
+   Texto: {ticket_text}
+   
+   Responde en JSON:
+   {
+     "categoria": "[Técnico/Ventas/General]",
+     "urgencia": "[Alta/Media/Baja]",
+     "sentimiento": "[Positivo/Neutro/Negativo]",
+     "respuesta_sugerida": "..."
+   }`,
+                'contenido': `Genera contenido profesional.
+   
+   Tipo: {content_type}
+   Tema: {topic}
+   Tono: {tone}
+   Longitud: {length} palabras
+   
+   Incluye:
+   - Título atractivo
+   - Introducción enganchadora
+   - 3-5 puntos principales
+   - Conclusión con CTA`,
+                'analisis': `Analiza los siguientes datos:
+   
+   Datos: {data}
+   
+   Proporciona:
+   1. Resumen ejecutivo
+   2. Tendencias principales
+   3. Anomalías detectadas
+   4. Recomendaciones accionables
+   
+   Formato: JSON estructurado`,
+                'procesos': `Automatiza el siguiente proceso:
+   
+   Entrada: {input}
+   Proceso actual: {current_process}
+   
+   Determina:
+   - Siguiente paso
+   - Responsable
+   - Tiempo estimado
+   - Documentos necesarios`
+            };
+            
+            return prompts[useCase] || 'Tu prompt personalizado aquí';
+        }
+
+        // Generar código completo de ejemplo
+        function getFullExampleCode(data) {
+            return `
+// EJEMPLO 1: Conexión con Gemini AI
+// ==================================
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI("TU_API_KEY_AQUI");
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+async function processWithGemini(input) {
+    const prompt = \`${getExamplePrompt(data.firstUseCase)}\`;
+    
+    const result = await model.generateContent(prompt.replace('{input}', input));
+    const response = await result.response;
+    return response.text();
+}
+
+// EJEMPLO 2: Workflow n8n Completo
+// =================================
+{
+  "name": "Mi Automatización ${data.firstUseCase}",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "webhook-${data.firstUseCase}",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "webhookId": "1"
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "contents",
+              "value": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Call Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.urgency }}",
+              "operation": "equals",
+              "value2": "Alta"
+            }
+          ]
+        }
+      },
+      "name": "Router",
+      "type": "n8n-nodes-base.if",
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini": {
+      "main": [
+        [
+          {
+            "node": "Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
+
+// EJEMPLO 3: Script de Testing
+// =============================
+const testCases = [
+  { input: "Ejemplo 1", expected: "Resultado 1" },
+  { input: "Ejemplo 2", expected: "Resultado 2" }
+];
+
+async function runTests() {
+  for (const test of testCases) {
+    const result = await processWithGemini(test.input);
+    console.log(\`Test: \${test.input}\`);
+    console.log(\`Resultado: \${result}\`);
+    console.log(\`Esperado: \${test.expected}\`);
+    console.log('---');
+  }
+}
+            `;
+        }
+
+        // Generar fases detalladas
+        function generateDetailedPhases(data) {
+            const phases = generatePhases(data);
+            return phases.map((phase, index) => `
+FASE ${index + 1}: ${phase.title}
+${'-'.repeat(phase.title.length + 8)}
+Duración: ${phase.duration}
+
+Tareas:
+${phase.tasks.map((task, i) => `
+${i + 1}. ${task.title}
+   ${task.description}
+   
+   Checklist:
+   [ ] Configuración inicial
+   [ ] Prueba básica
+   [ ] Validación con datos reales
+   [ ] Documentación
+`).join('\n')}
+            `).join('\n');
+        }
+
+        // Mostrar toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"cae65d1a24bc4fccbb90108b5f9f9679","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minimizando Costos y Optimizando Flujos con n8n</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        padding-bottom: 100px;
+      }
+
+      /* Header */
+      .header {
+        background: linear-gradient(135deg, #009ee3 0%, #729e2e 100%);
+        color: white;
+        padding: 40px 0;
+        text-align: center;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+      }
+
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      /* Progress Bar */
+      .progress-container {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #729e2e, #009ee3);
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 4px;
+      }
+
+      .progress-text {
+        margin-top: 10px;
+        text-align: center;
+        color: #666;
+        font-weight: 600;
+      }
+
+      /* Section Styles */
+      .section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        display: none;
+      }
+
+      .section.active {
+        display: block;
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .section h2 {
+        color: #009ee3;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #e2a30b;
+        padding-bottom: 10px;
+      }
+
+      /* Tabs */
+      .tabs-container {
+        margin-bottom: 30px;
+      }
+
+      .tabs {
+        display: flex;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 5px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 15px 20px;
+        text-align: center;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 120px;
+      }
+
+      .tab.active {
+        background: #009ee3;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 158, 227, 0.3);
+      }
+
+      .tab-content {
+        display: none;
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      /* Accordion - CORREGIDO */
+      .accordion {
+        margin: 30px 0;
+      }
+
+      .accordion-item {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .accordion-header {
+        background: linear-gradient(135deg, #729e2e 0%, #e2a30b 100%);
+        color: white;
+        padding: 20px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+      }
+
+      .accordion-header:hover {
+        background: linear-gradient(135deg, #5a7d24 0%, #c8920a 100%);
+      }
+
+      .accordion-content {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        background: #f8f9fa;
+      }
+
+      .accordion-item.active .accordion-content {
+        padding: 25px;
+        max-height: 800px; /* Aumentado para contenido más largo */
+      }
+
+      .accordion-icon {
+        transition: transform 0.3s ease;
+        font-size: 0.8rem;
+      }
+
+      .accordion-item.active .accordion-icon {
+        transform: rotate(180deg);
+      }
+
+      /* Flip Cards */
+      .flip-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin: 30px 0;
+      }
+
+      .flip-card {
+        background-color: transparent;
+        width: 100%;
+        height: 250px;
+        perspective: 1000px;
+      }
+
+      .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        cursor: pointer;
+      }
+
+      .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+      }
+
+      .flip-card-front,
+      .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 15px;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .flip-card-front {
+        background: linear-gradient(135deg, #009ee3 0%, #729e2e 100%);
+        color: white;
+      }
+
+      .flip-card-back {
+        background: linear-gradient(135deg, #e2a30b 0%, #df501d 100%);
+        color: white;
+        transform: rotateY(180deg);
+      }
+
+      /* Lists with Icons */
+      .icon-list {
+        list-style: none;
+        margin: 20px 0;
+      }
+
+      .icon-list li {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #009ee3;
+      }
+
+      .icon-list .icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 15px;
+        background: #729e2e;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        flex-shrink: 0;
+        font-size: 12px;
+      }
+
+      /* Timeline */
+      .timeline {
+        position: relative;
+        padding: 20px 0;
+      }
+
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(to bottom, #009ee3, #729e2e);
+        transform: translateX(-50%);
+      }
+
+      .timeline-item {
+        position: relative;
+        margin: 30px 0;
+        width: 50%;
+      }
+
+      .timeline-item:nth-child(odd) {
+        left: 0;
+        padding-right: 30px;
+      }
+
+      .timeline-item:nth-child(even) {
+        left: 50%;
+        padding-left: 30px;
+      }
+
+      .timeline-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      .timeline-item:nth-child(odd) .timeline-content::after {
+        content: "";
+        position: absolute;
+        top: 20px;
+        right: -10px;
+        border: 10px solid transparent;
+        border-left-color: white;
+      }
+
+      .timeline-item:nth-child(even) .timeline-content::after {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: -10px;
+        border: 10px solid transparent;
+        border-right-color: white;
+      }
+
+      .timeline-dot {
+        position: absolute;
+        top: 20px;
+        width: 16px;
+        height: 16px;
+        background: #e2a30b;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .timeline-item:nth-child(odd) .timeline-dot {
+        right: -8px;
+      }
+
+      .timeline-item:nth-child(even) .timeline-dot {
+        left: -8px;
+      }
+
+      /* Quiz Styles */
+      .quiz-container {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .drag-drop-area {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin: 30px 0;
+      }
+
+      .drag-items {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        min-height: 300px;
+      }
+
+      .drop-zones {
+        background: #f0f8ff;
+        padding: 20px;
+        border-radius: 10px;
+        min-height: 300px;
+      }
+
+      .drag-item {
+        background: linear-gradient(135deg, #009ee3, #729e2e);
+        color: white;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        cursor: move;
+        text-align: center;
+        font-weight: 600;
+        transition: transform 0.2s ease;
+      }
+
+      .drag-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .drop-zone {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 10px 0;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        transition: all 0.3s ease;
+      }
+
+      .drop-zone.drag-over {
+        border-color: #009ee3;
+        background: #e6f7ff;
+      }
+
+      .drop-zone.filled {
+        border-color: #729e2e;
+        background: #f0f8f0;
+      }
+
+      /* Navigation */
+      .navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+        gap: 15px;
+      }
+
+      .nav-btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex: 1;
+        max-width: 200px;
+      }
+
+      .nav-btn.prev {
+        background: #e2a30b;
+        color: white;
+      }
+
+      .nav-btn.next {
+        background: #009ee3;
+        color: white;
+      }
+
+      .nav-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .container {
+          padding: 10px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .section {
+          padding: 20px;
+        }
+
+        .tabs {
+          flex-direction: column;
+        }
+
+        .tab {
+          min-width: auto;
+        }
+
+        .timeline::before {
+          left: 20px;
+        }
+
+        .timeline-item {
+          width: 100%;
+          left: 0 !important;
+          padding-left: 50px !important;
+          padding-right: 0 !important;
+        }
+
+        .timeline-dot {
+          left: 12px !important;
+          right: auto !important;
+        }
+
+        .timeline-content::after {
+          display: none;
+        }
+
+        .drag-drop-area {
+          grid-template-columns: 1fr;
+        }
+
+        .navigation {
+          flex-direction: column;
+        }
+
+        .nav-btn {
+          max-width: none;
+        }
+      }
+
+      .highlight {
+        background: linear-gradient(120deg, #e2a30b20 0%, #e2a30b20 100%);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+
+      .success-message {
+        background: linear-gradient(135deg, #729e2e, #4caf50);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px 0;
+        display: none;
+      }
+
+      .success-message.show {
+        display: block;
+        animation: fadeIn 0.5s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>🚀 Minimizando Costos y Optimizando Flujos de Trabajo con n8n</h1>
+        <p>Estrategias clave para automatizaciones eficientes y económicas</p>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">Sección 1 de 6 (17%)</div>
+      </div>
+
+      <!-- Section 1: Introducción -->
+      <div class="section active" id="section1">
+        <h2>💡 Introducción</h2>
+        <div style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap">
+          <div style="flex: 2; min-width: 300px">
+            <p style="font-size: 1.1rem; margin-bottom: 20px">
+              En este módulo, nos enfocaremos en estrategias clave para que tus automatizaciones en
+              <span class="highlight">n8n</span> sean lo más eficientes y económicas posible.
+            </p>
+            <p style="margin-bottom: 20px">
+              A diferencia de otras plataformas que basan sus costos principalmente en la cantidad de tareas o pasos,
+              n8n ofrece una flexibilidad única, especialmente si decides alojarlo tú mismo (self-hosting).
+            </p>
+            <p>
+              Entender cómo optimizar tus flujos de trabajo te permitirá <strong>mantener los costos bajos</strong> en
+              un plan de nube y <strong>sacar el máximo provecho</strong> a tu servidor si eliges la opción autoalojada.
+            </p>
+          </div>
+          <div style="flex: 1; min-width: 250px; text-align: center">
+            <div
+              style="
+                background: linear-gradient(135deg, #009ee3, #729e2e);
+                border-radius: 20px;
+                padding: 40px;
+                color: white;
+              "
+            >
+              <div style="font-size: 4rem; margin-bottom: 20px">⚡</div>
+              <h3>Optimización</h3>
+              <p>Más eficiencia, menos costos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Conceptos Clave -->
+      <div class="section" id="section2">
+        <h2>🎯 Conceptos Clave</h2>
+        <div class="tabs-container">
+          <div class="tabs">
+            <button class="tab active" onclick="showTab('cloud')">n8n Cloud</button>
+            <button class="tab" onclick="showTab('selfhosted')">Self-Hosted</button>
+            <button class="tab" onclick="showTab('ejecuciones')">Ejecuciones</button>
+          </div>
+
+          <div class="tab-content active" id="cloud">
+            <h3 style="color: #009ee3; margin-bottom: 15px">💳 n8n Cloud</h3>
+            <p>
+              En los planes de pago de n8n, tienes un límite de ejecuciones mensuales. Optimizar significa hacer más con
+              menos ejecuciones.
+            </p>
+            <ul class="icon-list">
+              <li><span class="icon">1</span>Límite de ejecuciones mensuales</li>
+              <li><span class="icon">2</span>Procesamiento por lotes para reducir ejecuciones</li>
+              <li><span class="icon">3</span>Una ejecución diaria vs. 100 ejecuciones individuales</li>
+            </ul>
+          </div>
+
+          <div class="tab-content" id="selfhosted">
+            <h3 style="color: #729e2e; margin-bottom: 15px">🖥️ Self-Hosted</h3>
+            <p>No tienes límite de ejecuciones, pero sí los límites de tu servidor (CPU y memoria RAM).</p>
+            <ul class="icon-list">
+              <li><span class="icon">∞</span>Ejecuciones ilimitadas</li>
+              <li><span class="icon">⚡</span>Optimización para recursos del servidor</li>
+              <li><span class="icon">🛡️</span>Control total sobre el entorno</li>
+            </ul>
+          </div>
+
+          <div class="tab-content" id="ejecuciones">
+            <h3 style="color: #e2a30b; margin-bottom: 15px">🔄 Ejecuciones de Workflow</h3>
+            <p>
+              Una ejecución es cada vez que tu flujo de trabajo se inicia desde el principio, generalmente a través de
+              un nodo de activación (trigger).
+            </p>
+            <ul class="icon-list">
+              <li><span class="icon">🚀</span>Se inicia con un trigger</li>
+              <li><span class="icon">📊</span>Unidad de medida para costos</li>
+              <li><span class="icon">🎯</span>Objetivo: activar solo cuando sea necesario</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Estrategias de Optimización -->
+      <div class="section" id="section3">
+        <h2>🔧 Estrategias de Optimización</h2>
+        <div class="flip-cards">
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <h3>🎛️ Diseño Eficiente</h3>
+                <p>Camino más corto y lógico</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>Estrategias:</h4>
+                <p>• Usa nodos IF al principio</p>
+                <p>• Pide solo datos necesarios</p>
+                <p>• Implementa manejo de errores</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <h3>📦 Procesamiento por Lotes</h3>
+                <p>Muchos elementos juntos</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>Ejemplo:</h4>
+                <p>100 clientes = 1 ejecución</p>
+                <p>En lugar de 100 ejecuciones</p>
+                <p>Usa Schedule Trigger</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <h3>⚙️ Manipulación de Datos</h3>
+                <p>Transformar dentro de n8n</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>Nodo Code:</h4>
+                <p>• Combinar datos</p>
+                <p>• Calcular resúmenes</p>
+                <p>• Formatear información</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <h3>🚀 Extensión Gratuita</h3>
+                <p>Superpoder de n8n</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>Opciones:</h4>
+                <p>• Community Nodes</p>
+                <p>• HTTP Request</p>
+                <p>• Self-hosting</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Técnicas Detalladas -->
+      <div class="section" id="section4">
+        <h2>📋 Técnicas Detalladas</h2>
+        <div class="accordion">
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>🎛️ Condicionales para Detener Flujos</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+              <p>Utiliza el nodo <strong>IF</strong> al principio de tu workflow para evaluar condiciones críticas:</p>
+              <ul class="icon-list">
+                <li><span class="icon">✉️</span><strong>Email importante:</strong> ¿El correo cumple los criterios?</li>
+                <li><span class="icon">📊</span><strong>Datos válidos:</strong> ¿Los datos cumplen la condición?</li>
+                <li>
+                  <span class="icon">⏹️</span><strong>Detener flujo:</strong> Si no cumple, el flujo se detiene aquí
+                </li>
+              </ul>
+              <p><strong>Beneficio:</strong> Evita ejecutar nodos innecesarios y consumir recursos.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>📦 Agrupación de Acciones (Batching)</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+              <p>La técnica más poderosa para reducir ejecuciones:</p>
+              <div style="background: #f0f8ff; padding: 20px; border-radius: 10px; margin: 15px 0">
+                <h4 style="color: #df501d">❌ Forma Ineficiente:</h4>
+                <p>El workflow se activa con cada nuevo cliente → 100 clientes = 100 ejecuciones</p>
+              </div>
+              <div style="background: #f0f8f0; padding: 20px; border-radius: 10px; margin: 15px 0">
+                <h4 style="color: #729e2e">✅ Forma Eficiente:</h4>
+                <p>Schedule Trigger una vez al día → Procesa todos los clientes nuevos = 1 ejecución</p>
+              </div>
+              <p><strong>Resultado:</strong> De 100 ejecuciones a solo 1 ejecución.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>🔧 Nodo Code - Tu Mejor Aliado</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+              <p>El nodo Code te permite usar JavaScript para:</p>
+              <ul class="icon-list">
+                <li>
+                  <span class="icon">🔄</span><strong>Combinar datos:</strong> Unir información de múltiples fuentes
+                </li>
+                <li>
+                  <span class="icon">📊</span><strong>Calcular resúmenes:</strong> Sumar totales, contar elementos,
+                  promedios
+                </li>
+                <li><span class="icon">📝</span><strong>Formatear:</strong> Ajustar fechas, textos o números</li>
+              </ul>
+              <p>
+                <strong>Ventaja:</strong> Reduces nodos necesarios y llamadas a APIs externas, simplificando y
+                acelerando tu flujo.
+              </p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>🚀 Alternativas de Extensión</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+              <p>Expande n8n sin costo adicional:</p>
+              <ul class="icon-list">
+                <li><span class="icon">🏘️</span><strong>Community Nodes:</strong> Nodos creados por la comunidad</li>
+                <li><span class="icon">🌐</span><strong>HTTP Request:</strong> Conéctate a cualquier API</li>
+                <li><span class="icon">💻</span><strong>Nodo Code:</strong> Lógica personalizada con JavaScript</li>
+                <li><span class="icon">🏠</span><strong>Self-Hosting:</strong> Control total y máximo ahorro</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Timeline de Implementación -->
+      <div class="section" id="section5">
+        <h2>📅 Timeline de Implementación</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-content">
+              <div class="timeline-dot"></div>
+              <h3 style="color: #009ee3">Paso 1: Análisis</h3>
+              <p>
+                Identifica procesos actuales y puntos de optimización. Mapea flujos existentes y detecta ineficiencias.
+              </p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-content">
+              <div class="timeline-dot"></div>
+              <h3 style="color: #729e2e">Paso 2: Diseño</h3>
+              <p>Diseña flujos eficientes usando condicionales IF y planifica el procesamiento por lotes.</p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-content">
+              <div class="timeline-dot"></div>
+              <h3 style="color: #e2a30b">Paso 3: Implementación</h3>
+              <p>Configura Schedule Triggers, implementa nodos Code y establece manejo de errores.</p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-content">
+              <div class="timeline-dot"></div>
+              <h3 style="color: #df501d">Paso 4: Monitoreo</h3>
+              <p>Supervisa el rendimiento, mide la reducción de ejecuciones y ajusta según sea necesario.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 6: Actividad Quiz -->
+      <div class="section" id="section6">
+        <h2>🎯 Actividad: Arrastra y Empareja</h2>
+        <p style="margin-bottom: 30px">Arrastra cada técnica de optimización a su descripción correspondiente:</p>
+
+        <div class="drag-drop-area">
+          <div class="drag-items">
+            <h3 style="color: #009ee3; margin-bottom: 20px">Técnicas de Optimización</h3>
+            <div class="drag-item" draggable="true" data-answer="condicionales">Nodos IF</div>
+            <div class="drag-item" draggable="true" data-answer="batching">Schedule Trigger</div>
+            <div class="drag-item" draggable="true" data-answer="code">Nodo Code</div>
+            <div class="drag-item" draggable="true" data-answer="http">HTTP Request</div>
+            <div class="drag-item" draggable="true" data-answer="selfhost">Self-Hosting</div>
+          </div>
+
+          <div class="drop-zones">
+            <h3 style="color: #729e2e; margin-bottom: 20px">Descripciones</h3>
+            <div class="drop-zone" data-accept="condicionales">
+              <span>Detener flujos innecesarios al principio</span>
+            </div>
+            <div class="drop-zone" data-accept="batching">
+              <span>Procesar múltiples elementos en una ejecución</span>
+            </div>
+            <div class="drop-zone" data-accept="code">
+              <span>Manipular datos con JavaScript</span>
+            </div>
+            <div class="drop-zone" data-accept="http">
+              <span>Conectar con cualquier API</span>
+            </div>
+            <div class="drop-zone" data-accept="selfhost">
+              <span>Control total y máximo ahorro</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+          🎉 ¡Excelente! Has completado correctamente la actividad. Has demostrado tu comprensión de las técnicas de
+          optimización en n8n.
+        </div>
+
+        <button
+          onclick="checkAnswers()"
+          style="
+            background: #009ee3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+          "
+        >
+          Verificar Respuestas
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <div class="navigation">
+        <button class="nav-btn prev" onclick="prevSection()" id="prevBtn" disabled>← Anterior</button>
+        <button class="nav-btn next" onclick="nextSection()" id="nextBtn">Siguiente →</button>
+      </div>
+    </div>
+
+    <script>
+      let currentSection = 1;
+      const totalSections = 6;
+      let draggedElement = null;
+      let correctAnswers = 0;
+
+      // Progress update
+      function updateProgress() {
+        const progress = (currentSection / totalSections) * 100;
+        document.getElementById("progressFill").style.width = progress + "%";
+        document.getElementById(
+          "progressText"
+        ).textContent = `Sección ${currentSection} de ${totalSections} (${Math.round(progress)}%)`;
+      }
+
+      // Section navigation
+      function nextSection() {
+        if (currentSection < totalSections) {
+          document.getElementById(`section${currentSection}`).classList.remove("active");
+          currentSection++;
+          document.getElementById(`section${currentSection}`).classList.add("active");
+          updateProgress();
+          updateNavButtons();
+        }
+      }
+
+      function prevSection() {
+        if (currentSection > 1) {
+          document.getElementById(`section${currentSection}`).classList.remove("active");
+          currentSection--;
+          document.getElementById(`section${currentSection}`).classList.add("active");
+          updateProgress();
+          updateNavButtons();
+        }
+      }
+
+      function updateNavButtons() {
+        document.getElementById("prevBtn").disabled = currentSection === 1;
+        document.getElementById("nextBtn").disabled = currentSection === totalSections;
+
+        if (currentSection === totalSections) {
+          document.getElementById("nextBtn").textContent = "Finalizar";
+        } else {
+          document.getElementById("nextBtn").textContent = "Siguiente →";
+        }
+      }
+
+      // Tabs functionality
+      function showTab(tabName) {
+        // Remove active class from all tabs and contents
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"));
+
+        // Add active class to clicked tab and corresponding content
+        event.target.classList.add("active");
+        document.getElementById(tabName).classList.add("active");
+      }
+
+      // Accordion functionality - CORREGIDO
+      function toggleAccordion(header) {
+        const item = header.parentElement;
+        const content = header.nextElementSibling;
+        const isActive = item.classList.contains("active");
+
+        // Cerrar todos los acordeones
+        document.querySelectorAll(".accordion-item").forEach((accordionItem) => {
+          accordionItem.classList.remove("active");
+        });
+
+        // Si no estaba activo, abrirlo
+        if (!isActive) {
+          item.classList.add("active");
+        }
+      }
+
+      // Drag and Drop functionality
+      function initDragDrop() {
+        const dragItems = document.querySelectorAll(".drag-item");
+        const dropZones = document.querySelectorAll(".drop-zone");
+
+        dragItems.forEach((item) => {
+          item.addEventListener("dragstart", (e) => {
+            draggedElement = e.target;
+            e.dataTransfer.effectAllowed = "move";
+          });
+
+          item.addEventListener("dragend", (e) => {
+            draggedElement = null;
+          });
+        });
+
+        dropZones.forEach((zone) => {
+          zone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            zone.classList.add("drag-over");
+          });
+
+          zone.addEventListener("dragleave", () => {
+            zone.classList.remove("drag-over");
+          });
+
+          zone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            zone.classList.remove("drag-over");
+
+            if (draggedElement && !zone.classList.contains("filled")) {
+              const clone = draggedElement.cloneNode(true);
+              clone.style.margin = "0";
+              zone.appendChild(clone);
+              zone.classList.add("filled");
+
+              // Remove from original location
+              draggedElement.style.opacity = "0.5";
+              draggedElement.draggable = false;
+            }
+          });
+        });
+      }
+
+      function checkAnswers() {
+        const dropZones = document.querySelectorAll(".drop-zone");
+        correctAnswers = 0;
+
+        dropZones.forEach((zone) => {
+          const draggedItem = zone.querySelector(".drag-item");
+          if (draggedItem) {
+            const answer = draggedItem.getAttribute("data-answer");
+            const expected = zone.getAttribute("data-accept");
+
+            if (answer === expected) {
+              zone.style.borderColor = "#729E2E";
+              zone.style.background = "#f0f8f0";
+              correctAnswers++;
+            } else {
+              zone.style.borderColor = "#DF501D";
+              zone.style.background = "#ffe6e6";
+            }
+          }
+        });
+
+        if (correctAnswers === dropZones.length) {
+          document.getElementById("successMessage").classList.add("show");
+        }
+      }
+
+      function resetDragDrop() {
+        const dropZones = document.querySelectorAll(".drop-zone");
+        const dragItems = document.querySelectorAll(".drag-item");
+
+        dropZones.forEach((zone) => {
+          const draggedItem = zone.querySelector(".drag-item");
+          if (draggedItem) {
+            draggedItem.remove();
+          }
+          zone.classList.remove("filled");
+          zone.style.borderColor = "#ccc";
+          zone.style.background = "white";
+        });
+
+        dragItems.forEach((item) => {
+          item.style.opacity = "1";
+          item.draggable = true;
+        });
+
+        document.getElementById("successMessage").classList.remove("show");
+        correctAnswers = 0;
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        updateProgress();
+        updateNavButtons();
+        initDragDrop();
+      });
+
+      // Keyboard navigation
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowRight" && currentSection < totalSections) {
+          nextSection();
+        } else if (e.key === "ArrowLeft" && currentSection > 1) {
+          prevSection();
+        }
+      });
+    </script>
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"cae65d1a24bc4fccbb90108b5f9f9679","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM para Análisis y Resolución de Problemas Complejos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #009EE3 0%, #729E2E 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .content {
+            padding: 25px 30px;
+        }
+
+        .intro-section {
+            background: linear-gradient(135deg, #E2A30B08 0%, #009EE315 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 4px solid #729E2E;
+        }
+
+        .intro-section h2 {
+            color: #009EE3;
+            margin-bottom: 10px;
+            font-size: 1.6em;
+        }
+
+        .intro-section p {
+            color: #333;
+            line-height: 1.7;
+            font-size: 1.05em;
+        }
+
+        .tabs {
+            margin: 25px 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: #009EE310;
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #009EE3 0%, #729E2E 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            min-height: 350px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content h3 {
+            color: #729E2E;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #E2A30B;
+            padding-bottom: 8px;
+        }
+
+        .tab-content h4 {
+            color: #009EE3;
+            margin: 15px 0 8px 0;
+            font-size: 1.15em;
+        }
+
+        .tab-content p {
+            line-height: 1.7;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .tab-content ul {
+            margin: 10px 0 10px 25px;
+            line-height: 1.7;
+        }
+
+        .tab-content li {
+            margin: 8px 0;
+            position: relative;
+            color: #333;
+        }
+
+        .tab-content li::before {
+            content: "▸";
+            color: #E2A30B;
+            font-weight: bold;
+            position: absolute;
+            left: -18px;
+        }
+
+        /* Nuevo diseño para las cajas de prompt */
+        .prompt-box {
+            background: linear-gradient(135deg, #009EE305 0%, #729E2E05 100%);
+            border: 2px solid #009EE3;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prompt-box::before {
+            content: "📝 PROMPT TEMPLATE";
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+            color: #009EE3;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .prompt-box .prompt-line {
+            display: flex;
+            align-items: flex-start;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px dashed #009EE330;
+        }
+
+        .prompt-box .prompt-line:last-child {
+            border-bottom: none;
+        }
+
+        .prompt-box .prompt-label {
+            color: #729E2E;
+            font-weight: bold;
+            min-width: 100px;
+            margin-right: 15px;
+        }
+
+        .prompt-box .prompt-value {
+            color: #333;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .prompt-box .prompt-list {
+            margin-left: 115px;
+            margin-top: 5px;
+        }
+
+        .prompt-box .prompt-list li {
+            list-style: none;
+            margin: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .prompt-box .prompt-list li::before {
+            content: "•";
+            color: #E2A30B;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #729E2E10 0%, #009EE310 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #E2A30B;
+            margin: 15px 0;
+        }
+
+        .highlight-box h4 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .quiz-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .quiz-section h2 {
+            color: #009EE3;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            text-align: center;
+        }
+
+        .quiz-intro {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.05em;
+        }
+
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border-left: 4px solid #729E2E;
+        }
+
+        .question h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1.15em;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .option {
+            padding: 12px 18px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .option:hover {
+            background: #009EE310;
+            border-color: #009EE3;
+            transform: translateX(5px);
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .option.correct {
+            background: #729E2E20;
+            border-color: #729E2E;
+        }
+
+        .option.incorrect {
+            background: #DF501D20;
+            border-color: #DF501D;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #009EE3 0%, #729E2E 100%);
+            color: white;
+            padding: 12px 35px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 25px auto;
+            box-shadow: 0 5px 15px rgba(0,158,227,0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,158,227,0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #729E2E10 0%, #009EE310 100%);
+            border-radius: 12px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result h3 {
+            color: #009EE3;
+            font-size: 1.6em;
+            margin-bottom: 12px;
+        }
+
+        .score {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #729E2E;
+            margin: 15px 0;
+        }
+
+        .feedback {
+            font-size: 1.05em;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.6em; }
+            .tab-buttons { flex-direction: column; }
+            .tab-button { width: 100%; }
+            .content { padding: 15px; }
+            .prompt-box .prompt-line { flex-direction: column; }
+            .prompt-box .prompt-label { margin-bottom: 5px; }
+            .prompt-box .prompt-list { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 LLM para Análisis y Resolución de Problemas Complejos</h1>
+            <p>Estrategias de Inteligencia Computacional - Guía Interactiva</p>
+        </div>
+
+        <div class="content">
+            <div class="intro-section">
+                <h2>📚 Introducción</h2>
+                <p>
+                    Bienvenido a esta guía interactiva sobre el uso de LLM (Large Language Models) para el análisis y resolución de problemas complejos. 
+                    Aprenderás estrategias sistemáticas para descomponer problemas, generar soluciones y tomar decisiones informadas utilizando 
+                    inteligencia artificial como herramienta de apoyo estratégico.
+                </p>
+            </div>
+
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('fundamentos')">
+                        🎯 Fundamentos
+                    </button>
+                    <button class="tab-button" onclick="showTab('descomposicion')">
+                        🧩 Descomposición MECE
+                    </button>
+                    <button class="tab-button" onclick="showTab('foda')">
+                        📊 Análisis FODA/TOWS
+                    </button>
+                    <button class="tab-button" onclick="showTab('estrategias')">
+                        💡 Estrategias y Planes
+                    </button>
+                    <button class="tab-button" onclick="showTab('evaluacion')">
+                        ⚖️ Evaluación Multicriterio
+                    </button>
+                    <button class="tab-button" onclick="showTab('escenarios')">
+                        🔮 Simulación de Escenarios
+                    </button>
+                </div>
+
+                <div id="fundamentos" class="tab-content active">
+                    <h3>¿Qué hace complejo a un problema?</h3>
+                    <p>Los problemas complejos se caracterizan por múltiples factores interrelacionados que dificultan su análisis y solución.</p>
+                    <ul>
+                        <li>Múltiples partes interesadas con objetivos diversos.</li>
+                        <li>Datos incompletos o con alta incertidumbre.</li>
+                        <li>Interdependencias entre componentes del sistema.</li>
+                        <li>Objetivos en tensión (costo-calidad-tiempo).</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <h4>💡 Clave Pedagógica</h4>
+                        <p>No busques "la" causa única. Modela el sistema completo: factores, relaciones, bucles de refuerzo/estabilización y cuellos de botella.</p>
+                    </div>
+
+                    <h4>Patrones de trabajo con LLM (siempre aplicar):</h4>
+                    <ul>
+                        <li><strong>CRTF:</strong> Contexto–Rol–Tarea–Formato.</li>
+                        <li><strong>CoT:</strong> Chain of Thought (razonamiento paso a paso).</li>
+                        <li><strong>Self-consistency:</strong> Verificación por consenso.</li>
+                        <li><strong>Validación:</strong> Marcar datos "por validar" cuando no estén confirmados.</li>
+                        <li><strong>Iteración:</strong> V1→V2→V3 (mejora continua).</li>
+                    </ul>
+                </div>
+
+                <div id="descomposicion" class="tab-content">
+                    <h3>Método de Fragmentación Jerárquica (MECE)</h3>
+                    <p>MECE significa Mutuamente Excluyente y Colectivamente Exhaustivo. Es una técnica fundamental para descomponer problemas complejos de manera sistemática.</p>
+                    
+                    <h4>Pasos del proceso:</h4>
+                    <ul>
+                        <li>Definir el problema central en 1 frase clara.</li>
+                        <li>Identificar 2-6 subproblemas MECE.</li>
+                        <li>Mapear relaciones y dependencias.</li>
+                        <li>Crear árbol jerárquico de niveles.</li>
+                        <li>Identificar puntos de intervención prioritarios.</li>
+                    </ul>
+
+                    <h4>Plantilla de Prompt para Descomposición:</h4>
+                    <div class="prompt-box">
+                        <div class="prompt-line">
+                            <span class="prompt-label">Contexto:</span>
+                            <span class="prompt-value">Problema estratégico en [sector/empresa], con caída de [métrica] en [período].</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Rol:</span>
+                            <span class="prompt-value">Consultor/a estratégico/a senior experto/a en descomposición MECE.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Tarea:</span>
+                            <span class="prompt-value">Descomponer el problema y mapear interdependencias.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Formato:</span>
+                            <span class="prompt-value">
+                                <ul class="prompt-list">
+                                    <li>Problema central (1 frase).</li>
+                                    <li>4–6 subproblemas (MECE).</li>
+                                    <li>Relación y dependencias entre subproblemas.</li>
+                                    <li>Árbol de descomposición (bullets por niveles).</li>
+                                    <li>3 puntos de intervención priorizados con justificación.</li>
+                                </ul>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>✅ Checklist Pro</h4>
+                        <p>¿La redacción del problema evita soluciones implícitas? ¿Los subproblemas no se solapan? ¿Se justifican los puntos de intervención?</p>
+                    </div>
+                </div>
+
+                <div id="foda" class="tab-content">
+                    <h3>Análisis FODA Asistido por IA (SWOT ponderado + TOWS)</h3>
+                    <p>Más allá de listar elementos, el análisis FODA avanzado incluye ponderación, conexiones y derivación de estrategias concretas.</p>
+
+                    <h4>Proceso mejorado:</h4>
+                    <ul>
+                        <li>Inventario de Fortalezas, Oportunidades, Debilidades, Amenazas.</li>
+                        <li>Ponderación (peso 1-5) × impacto (1-5) = puntaje total.</li>
+                        <li>Identificar conexiones entre cuadrantes.</li>
+                        <li>Derivar estrategias TOWS: FO, DO, FA, DA.</li>
+                    </ul>
+
+                    <h4>Plantilla de Prompt para FODA avanzado:</h4>
+                    <div class="prompt-box">
+                        <div class="prompt-line">
+                            <span class="prompt-label">Contexto:</span>
+                            <span class="prompt-value">[Empresa/Proyecto] en [mercado/país].</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Rol:</span>
+                            <span class="prompt-value">Consultor/a organizacional experto en análisis estratégico.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Tarea:</span>
+                            <span class="prompt-value">FODA ponderado y TOWS accionable.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Formato:</span>
+                            <span class="prompt-value">
+                                <ul class="prompt-list">
+                                    <li>Matriz FODA con peso e impacto (puntaje total).</li>
+                                    <li>6 conexiones clave entre cuadrantes.</li>
+                                    <li>4 estrategias TOWS con objetivo, acción y métrica.</li>
+                                    <li>Priorización (alto/medio/bajo) y justificación.</li>
+                                </ul>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>🎯 Optimización</h4>
+                        <p>Solicita tabla resumen con top-3 factores por cuadrante y su contribución porcentual al puntaje total.</p>
+                    </div>
+                </div>
+
+                <div id="estrategias" class="tab-content">
+                    <h3>Generación de Estrategias y Planes de Acción</h3>
+                    <p>La ingeniería estratégica con LLM permite explorar alternativas sistemáticamente y crear planes detallados de implementación.</p>
+
+                    <h4>Elementos clave del plan:</h4>
+                    <ul>
+                        <li>Explorar 3-5 alternativas MECE.</li>
+                        <li>Objetivos específicos y medibles.</li>
+                        <li>Hitos con plazos definidos.</li>
+                        <li>Matriz RACI de responsabilidades.</li>
+                        <li>Recursos y presupuesto estimado.</li>
+                        <li>KPIs/OKRs para seguimiento.</li>
+                        <li>Análisis de riesgos y mitigación.</li>
+                    </ul>
+
+                    <h4>Plantilla de Prompt para Estrategias:</h4>
+                    <div class="prompt-box">
+                        <div class="prompt-line">
+                            <span class="prompt-label">Contexto:</span>
+                            <span class="prompt-value">[Reto/objetivo] en [sector].</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Rol:</span>
+                            <span class="prompt-value">Estratega de desarrollo de negocios.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Tarea:</span>
+                            <span class="prompt-value">Proponer 3–5 estrategias MECE y su plan de implementación.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Formato:</span>
+                            <span class="prompt-value">
+                                <ul class="prompt-list">
+                                    <li>Estrategia (1 frase clara).</li>
+                                    <li>Ventajas/desventajas (3/3).</li>
+                                    <li>Plan completo: objetivo, hitos, RACI, recursos.</li>
+                                    <li>Presupuesto estimado (por validar).</li>
+                                    <li>KPIs, plazos, riesgos y mitigación.</li>
+                                </ul>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>📋 Checklist Pro</h4>
+                        <p>Cada KPI debe tener: fórmula de cálculo, línea base, meta objetivo y frecuencia de medición. Los riesgos deben incluir probabilidad×impacto y plan de contingencia.</p>
+                    </div>
+                </div>
+
+                <div id="evaluacion" class="tab-content">
+                    <h3>Evaluación de Opciones y Toma de Decisiones</h3>
+                    <p>Método multicriterio (SAW/AHP simplificado) para evaluar alternativas de manera objetiva y sistemática.</p>
+
+                    <h4>Criterios típicos de evaluación:</h4>
+                    <ul>
+                        <li>Impacto estratégico.</li>
+                        <li>Viabilidad económica.</li>
+                        <li>Nivel de riesgo.</li>
+                        <li>Alineación con objetivos.</li>
+                        <li>Recursos requeridos.</li>
+                    </ul>
+
+                    <h4>Proceso de evaluación:</h4>
+                    <ul>
+                        <li>Definir pesos (w): suma = 1.00 (100%).</li>
+                        <li>Asignar puntajes (s): normalizar 0-1 o escala 1-5.</li>
+                        <li>Calcular score final: Σ(wᵢ × sᵢ).</li>
+                        <li>Realizar análisis de sensibilidad.</li>
+                    </ul>
+
+                    <h4>Plantilla de Prompt para MCDA:</h4>
+                    <div class="prompt-box">
+                        <div class="prompt-line">
+                            <span class="prompt-label">Contexto:</span>
+                            <span class="prompt-value">Selección de estrategia para [objetivo].</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Rol:</span>
+                            <span class="prompt-value">Analista de decisiones experto en métodos multicriterio.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Tarea:</span>
+                            <span class="prompt-value">Evaluar 3–5 alternativas con método multicriterio.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Formato:</span>
+                            <span class="prompt-value">
+                                <ul class="prompt-list">
+                                    <li>Criterios y pesos (suma 1.0).</li>
+                                    <li>Matriz de puntuaciones (0–1 o 1–5).</li>
+                                    <li>Ranking y recomendación justificada.</li>
+                                    <li>Análisis de sensibilidad.</li>
+                                </ul>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>🔬 Variante Avanzada (AHP)</h4>
+                        <p>Solicita comparación por pares para derivar pesos y realiza chequeo de consistencia para mayor robustez en la decisión.</p>
+                    </div>
+                </div>
+
+                <div id="escenarios" class="tab-content">
+                    <h3>Simulación de Escenarios (Prospectiva)</h3>
+                    <p>Construye múltiples futuros posibles para preparar respuestas estratégicas robustas ante la incertidumbre.</p>
+
+                    <h4>Cuatro arquetipos de escenarios:</h4>
+                    <ul>
+                        <li><strong>Base:</strong> Continuación de tendencias actuales.</li>
+                        <li><strong>Optimista:</strong> Mejores condiciones posibles.</li>
+                        <li><strong>Pesimista:</strong> Desafíos y obstáculos significativos.</li>
+                        <li><strong>Disruptivo:</strong> Cambios fundamentales en el entorno.</li>
+                    </ul>
+
+                    <h4>Elementos de cada escenario:</h4>
+                    <ul>
+                        <li>Variables críticas y supuestos.</li>
+                        <li>Probabilidad estimada de ocurrencia.</li>
+                        <li>Indicadores tempranos (early warnings).</li>
+                        <li>Implicaciones por función organizacional.</li>
+                        <li>Gatillos (triggers) para activar planes B.</li>
+                    </ul>
+
+                    <h4>Plantilla de Prompt para Escenarios:</h4>
+                    <div class="prompt-box">
+                        <div class="prompt-line">
+                            <span class="prompt-label">Contexto:</span>
+                            <span class="prompt-value">Planificación para [empresa/industria] 12–24 meses.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Rol:</span>
+                            <span class="prompt-value">Analista de prospectiva estratégica.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Tarea:</span>
+                            <span class="prompt-value">Construir 4 escenarios y su respuesta estratégica.</span>
+                        </div>
+                        <div class="prompt-line">
+                            <span class="prompt-label">Formato:</span>
+                            <span class="prompt-value">
+                                <ul class="prompt-list">
+                                    <li>Descripción breve de cada escenario.</li>
+                                    <li>Probabilidad y supuestos por validar.</li>
+                                    <li>Implicaciones por función.</li>
+                                    <li>Estrategias y triggers de activación.</li>
+                                    <li>Indicadores líderes para monitoreo.</li>
+                                </ul>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>📊 Indicadores de Monitoreo</h4>
+                        <p>Define indicadores líderes para monitoreo trimestral. Cada escenario debe cambiar al menos 2 variables críticas y definir 2-3 triggers medibles.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-section">
+                <h2>🎯 Evaluación Integral de Conocimientos</h2>
+                <p class="quiz-intro">Evalúa tu comprensión de todos los conceptos presentados en esta guía.</p>
+                
+                <div class="question">
+                    <h3>1. [Fundamentos] ¿Cuál de los siguientes NO es un patrón de trabajo recomendado con LLM?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q1" value="a">
+                            CRTF (Contexto-Rol-Tarea-Formato).
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="b">
+                            CoT (Chain of Thought).
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="c">
+                            RAG (Respuesta Automática Generalizada).
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="d">
+                            Self-consistency (verificación por consenso).
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>2. [Descomposición] ¿Qué significa que los subproblemas sean MECE?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q2" value="a">
+                            Medibles, Específicos, Concretos y Evaluables.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="b">
+                            Mutuamente Excluyentes y Colectivamente Exhaustivos.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="c">
+                            Metodología Estratégica de Casos Empresariales.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="d">
+                            Matriz de Evaluación Crítica y Estratégica.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>3. [FODA/TOWS] En el análisis TOWS, ¿qué estrategia combina Fortalezas con Oportunidades?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q3" value="a">
+                            Estrategia DO (Debilidades-Oportunidades).
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="b">
+                            Estrategia FA (Fortalezas-Amenazas).
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="c">
+                            Estrategia FO (Fortalezas-Oportunidades).
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="d">
+                            Estrategia DA (Debilidades-Amenazas).
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>4. [Estrategias] ¿Qué es una matriz RACI en el contexto de planes de acción?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q4" value="a">
+                            Una herramienta para definir responsabilidades del equipo.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="b">
+                            Un método de evaluación de riesgos.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="c">
+                            Un análisis de retorno de inversión.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="d">
+                            Una técnica de priorización de tareas.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>5. [Evaluación Multicriterio] En el método SAW, ¿cómo se calcula el score final de una alternativa?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q5" value="a">
+                            Promedio simple de todos los criterios.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="b">
+                            Suma de (peso × puntaje) para cada criterio.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="c">
+                            Máximo puntaje entre todos los criterios.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="d">
+                            Multiplicación de todos los puntajes.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>6. [Escenarios] ¿Qué son los "triggers" en la simulación de escenarios?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q6" value="a">
+                            Variables aleatorias del modelo.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="b">
+                            Señales medibles que disparan una acción específica.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="c">
+                            Probabilidades de ocurrencia de eventos.
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="d">
+                            Objetivos a largo plazo del escenario.
+                        </label>
+                    </div>
+                </div>
+
+                <button class="submit-btn" onclick="checkAnswers()">
+                    Verificar Respuestas
+                </button>
+
+                <div id="result" class="result">
+                    <h3>Resultados de tu Evaluación</h3>
+                    <div class="score" id="score">0/6</div>
+                    <div class="feedback" id="feedback"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de tabs
+        function showTab(tabName) {
+            // Ocultar todos los contenidos
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Desactivar todos los botones
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Mostrar el contenido seleccionado
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar el botón correspondiente
+            event.target.classList.add('active');
+        }
+
+        // Sistema de quiz
+        const correctAnswers = {
+            q1: 'c', // RAG no es un patrón mencionado
+            q2: 'b', // MECE = Mutuamente Excluyentes y Colectivamente Exhaustivos
+            q3: 'c', // FO = Fortalezas-Oportunidades
+            q4: 'a', // RACI es para definir responsabilidades
+            q5: 'b', // SAW = Suma de (peso × puntaje)
+            q6: 'b'  // Triggers son señales medibles que disparan acciones
+        };
+
+        function checkAnswers() {
+            let score = 0;
+            let totalQuestions = Object.keys(correctAnswers).length;
+            
+            // Resetear estilos
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+            
+            // Verificar cada respuesta
+            for (let question in correctAnswers) {
+                const selectedOption = document.querySelector(`input[name="${question}"]:checked`);
+                
+                if (selectedOption) {
+                    const selectedValue = selectedOption.value;
+                    const optionElement = selectedOption.closest('.option');
+                    
+                    if (selectedValue === correctAnswers[question]) {
+                        score++;
+                        optionElement.classList.add('correct');
+                    } else {
+                        optionElement.classList.add('incorrect');
+                        // Marcar la respuesta correcta
+                        const correctOption = document.querySelector(`input[name="${question}"][value="${correctAnswers[question]}"]`);
+                        if (correctOption) {
+                            correctOption.closest('.option').classList.add('correct');
+                        }
+                    }
+                }
+            }
+            
+            // Mostrar resultados
+            const resultDiv = document.getElementById('result');
+            const scoreDiv = document.getElementById('score');
+            const feedbackDiv = document.getElementById('feedback');
+            
+            scoreDiv.textContent = `${score}/${totalQuestions}`;
+            
+            let feedback = '';
+            const percentage = (score / totalQuestions) * 100;
+            
+            if (percentage === 100) {
+                feedback = '¡Excelente! 🎉 Has dominado completamente todos los conceptos de análisis de problemas complejos con LLM. Estás listo para aplicar estas estrategias en situaciones reales.';
+            } else if (percentage >= 80) {
+                feedback = '¡Muy bien! 👏 Tienes un sólido entendimiento de los conceptos. Revisa las respuestas incorrectas para perfeccionar tu conocimiento.';
+            } else if (percentage >= 60) {
+                feedback = 'Buen trabajo 👍. Comprendes los conceptos básicos, pero te recomendamos repasar las secciones donde tuviste errores para fortalecer tu comprensión.';
+            } else {
+                feedback = 'Necesitas reforzar tu comprensión 📚. Te sugerimos revisar nuevamente todas las pestañas del contenido, prestando especial atención a los conceptos clave de cada sección.';
+            }
+            
+            feedbackDiv.textContent = feedback;
+            resultDiv.classList.add('show');
+            
+            // Deshabilitar el botón de envío
+            document.querySelector('.submit-btn').disabled = true;
+            
+            // Scroll hasta los resultados
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Animación inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar animación escalonada a los tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach((button, index) => {
+                button.style.animationDelay = `${index * 0.1}s`;
+                button.style.animation = 'fadeIn 0.5s ease forwards';
+            });
+        });
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"cae65d1a24bc4fccbb90108b5f9f9679","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

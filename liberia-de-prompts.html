@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construcción de una Biblioteca Personal de Prompts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #009EE3 0%, #729E2E 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .scorm-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #009EE3, #729E2E);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #729E2E, #009EE3);
+            width: 0%;
+            transition: width 0.8s ease;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.2) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.2) 75%);
+            background-size: 20px 20px;
+            animation: shimmer 2s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(100px); }
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, #009EE3, #729E2E);
+            color: white;
+            box-shadow: 0 12px 30px rgba(0, 158, 227, 0.3);
+        }
+
+        .nav-btn.completed::after {
+            content: '✓';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: #729E2E;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .module {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .module.active {
+            display: block;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .module h2 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .module h2::after {
+            content: '';
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(45deg, #009EE3, #729E2E);
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        /* Tabs (Pestañas) */
+        .tabs-container {
+            margin: 30px 0;
+        }
+
+        .tabs-nav {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 18px 25px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: #009EE3;
+            background: white;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(45deg, #009EE3, #729E2E);
+        }
+
+        .tab-content {
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Acordeón */
+        .accordion {
+            margin: 25px 0;
+        }
+
+        .accordion-item {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .accordion-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: background 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+        }
+
+        .accordion-header.active {
+            background: linear-gradient(45deg, #009EE3, #729E2E);
+            color: white;
+        }
+
+        .accordion-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            background: white;
+        }
+
+        .accordion-content.active {
+            max-height: 500px;
+        }
+
+        .accordion-body {
+            padding: 25px;
+        }
+
+        /* Flip Cards */
+        .flip-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 250px;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #009EE3, #0077B3);
+            color: white;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #729E2E, #5A7A23);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .flip-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        /* Labeled Graphic */
+        .labeled-graphic {
+            position: relative;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .graphic-image {
+            max-width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .graphic-point {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #E2A30B;
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .graphic-point:hover {
+            transform: scale(1.2);
+            background: #DF501D;
+            z-index: 10;
+        }
+
+        .point-tooltip {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .graphic-point:hover .point-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .point-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin: 40px 0;
+            padding: 0 20px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #009EE3, #729E2E);
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 30px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-item:nth-child(odd) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            width: 45%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 100%;
+            width: 0;
+            height: 0;
+            border: 15px solid transparent;
+            border-left-color: white;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 100%;
+            width: 0;
+            height: 0;
+            border: 15px solid transparent;
+            border-right-color: white;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #E2A30B;
+            border: 4px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Listas con íconos */
+        .icon-list {
+            list-style: none;
+            padding: 0;
+            margin: 25px 0;
+        }
+
+        .icon-list li {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .icon-list li:hover {
+            transform: translateX(10px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-list .icon {
+            margin-right: 15px;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #009EE3, #729E2E);
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* Botones principales */
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(45deg, #009EE3, #729E2E);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 8px 20px rgba(0, 158, 227, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 158, 227, 0.4);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #E2A30B, #DF501D);
+            box-shadow: 0 8px 20px rgba(226, 163, 11, 0.3);
+        }
+
+        .btn.secondary:hover {
+            box-shadow: 0 12px 30px rgba(226, 163, 11, 0.4);
+        }
+
+        /* Actividad de arrastrar y soltar */
+        .drag-drop-container {
+            margin: 30px 0;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .drag-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            min-height: 80px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .drag-item {
+            background: linear-gradient(45deg, #009EE3, #0077B3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 158, 227, 0.3);
+        }
+
+        .drag-item:hover {
+            transform: scale(1.05);
+        }
+
+        .drag-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+            cursor: grabbing;
+        }
+
+        .drop-zones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .drop-zone {
+            min-height: 120px;
+            border: 3px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #009EE3;
+            background: rgba(0, 158, 227, 0.1);
+        }
+
+        .drop-zone.correct {
+            border-color: #729E2E;
+            background: rgba(114, 158, 46, 0.1);
+        }
+
+        .drop-zone.incorrect {
+            border-color: #DF501D;
+            background: rgba(223, 80, 29, 0.1);
+        }
+
+        .drop-zone h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .dropped-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        /* Párrafo + imagen */
+        .content-with-image {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            align-items: center;
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+        }
+
+        .content-with-image img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .scorm-container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .module {
+                padding: 25px;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .timeline::before {
+                left: 30px;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 60px);
+                margin-left: 60px;
+            }
+            
+            .timeline-item:nth-child(odd) {
+                flex-direction: row;
+            }
+            
+            .timeline-item:nth-child(odd) .timeline-content::before {
+                left: -15px;
+                border-right-color: white;
+                border-left-color: transparent;
+            }
+            
+            .timeline-marker {
+                left: 30px;
+            }
+            
+            .content-with-image {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+            }
+            
+            .flip-cards-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Notificaciones */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #729E2E, #5A7A23);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.4s ease;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: linear-gradient(45deg, #DF501D, #B8401A);
+        }
+
+        .floating-help {
+            position: fixed;
+            bottom: 90px;
+            right: 30px;
+            background: linear-gradient(45deg, #E2A30B, #DF501D);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(226, 163, 11, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .floating-help:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(226, 163, 11, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="scorm-container">
+        <header class="header">
+            <h1>🚀 Biblioteca Personal de Prompts</h1>
+            <p style="font-size: 1.2em; color: #6c757d; margin-bottom: 20px;">
+                Domina el arte de crear, organizar y optimizar prompts efectivos
+            </p>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <p id="progressText" style="margin-top: 10px; font-weight: 600; color: #2c3e50;">
+                    Progreso: 0% completado
+                </p>
+            </div>
+        </header>
+
+        <nav class="navigation">
+            <button class="nav-btn active" onclick="showModule(0)">📚 Introducción</button>
+            <button class="nav-btn" onclick="showModule(1)">🗂️ Categorización</button>
+            <button class="nav-btn" onclick="showModule(2)">📝 Documentación</button>
+            <button class="nav-btn" onclick="showModule(3)">🔧 Plantillas</button>
+            <button class="nav-btn" onclick="showModule(4)">📊 Versionado</button>
+            <button class="nav-btn" onclick="showModule(5)">🤝 Colaboración</button>
+            <button class="nav-btn" onclick="showModule(6)">🎯 Evaluación</button>
+        </nav>
+
+        <!-- Módulo 0: Introducción -->
+        <div class="module active" id="module-0">
+            <h2>📚 Introducción a las Bibliotecas de Prompts</h2>
+            
+            <div class="content-with-image">
+                <div>
+                    <p style="font-size: 1.1em; margin-bottom: 20px;">
+                        Una <strong>biblioteca de prompts</strong> es un sistema organizado para almacenar, 
+                        categorizar y reutilizar instrucciones efectivas para IA. Es como tener un arsenal 
+                        de herramientas perfeccionadas que puedes usar una y otra vez.
+                    </p>
+                    <p style="font-size: 1.1em;">
+                        En este curso aprenderás a construir tu propia biblioteca profesional, 
+                        desde la categorización básica hasta sistemas avanzados de colaboración.
+                    </p>
+                </div>
+                <svg class="graphic-image" width="300" height="200" viewBox="0 0 300 200">
+                    <rect x="20" y="20" width="260" height="160" rx="15" fill="#009EE3" opacity="0.1"/>
+                    <rect x="40" y="50" width="80" height="40" rx="8" fill="#729E2E"/>
+                    <text x="80" y="75" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Prompts</text>
+                    <rect x="140" y="50" width="80" height="40" rx="8" fill="#E2A30B"/>
+                    <text x="180" y="75" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Categorías</text>
+                    <rect x="40" y="110" width="80" height="40" rx="8" fill="#DF501D"/>
+                    <text x="80" y="135" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Plantillas</text>
+                    <rect x="140" y="110" width="80" height="40" rx="8" fill="#009EE3"/>
+                    <text x="180" y="135" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Versiones</text>
+                    <line x1="240" y1="100" x2="270" y2="100" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="285" y="105" font-size="14">📊</text>
+                </svg>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" onclick="switchTab('benefits')">🎯 Beneficios</button>
+                    <button class="tab-btn" onclick="switchTab('challenges')">⚡ Desafíos</button>
+                    <button class="tab-btn" onclick="switchTab('methodology')">🛠️ Metodología</button>
+                </div>
+                
+                <div class="tab-content active" id="benefits">
+                    <ul class="icon-list">
+                        <li>
+                            <div class="icon">⚡</div>
+                            <div>
+                                <strong>Velocidad:</strong> Encuentra el prompt perfecto en segundos, 
+                                no en minutos navegando por archivos dispersos.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">🎯</div>
+                            <div>
+                                <strong>Consistencia:</strong> Resultados predecibles usando prompts 
+                                probados y documentados.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">📈</div>
+                            <div>
+                                <strong>Mejora continua:</strong> Versiona y optimiza basándote en 
+                                métricas reales de rendimiento.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">🤝</div>
+                            <div>
+                                <strong>Colaboración:</strong> Comparte conocimiento con tu equipo 
+                                de forma estructurada.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="tab-content" id="challenges">
+                    <ul class="icon-list">
+                        <li>
+                            <div class="icon">📊</div>
+                            <div>
+                                <strong>Organización:</strong> Mantener orden cuando tienes cientos 
+                                de prompts diferentes.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">🔄</div>
+                            <div>
+                                <strong>Actualización:</strong> Evitar prompts obsoletos y mantener 
+                                versiones actualizadas.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">🎨</div>
+                            <div>
+                                <strong>Estandarización:</strong> Crear formatos consistentes que 
+                                todos puedan usar.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">📝</div>
+                            <div>
+                                <strong>Documentación:</strong> Registrar contexto y casos de uso 
+                                para cada prompt.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="tab-content" id="methodology">
+                    <ul class="icon-list">
+                        <li>
+                            <div class="icon">1️⃣</div>
+                            <div>
+                                <strong>Captura:</strong> Registra prompts exitosos inmediatamente 
+                                después de usarlos.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">2️⃣</div>
+                            <div>
+                                <strong>Categoriza:</strong> Agrupa por función, dominio o tipo 
+                                de resultado esperado.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">3️⃣</div>
+                            <div>
+                                <strong>Documenta:</strong> Incluye contexto, métricas y casos 
+                                de uso específicos.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">4️⃣</div>
+                            <div>
+                                <strong>Itera:</strong> Mejora basándote en resultados y feedback 
+                                del equipo.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeModule(0)">Comenzar el Curso 🚀</button>
+        </div>
+
+        <!-- Módulo 1: Categorización -->
+        <div class="module" id="module-1">
+            <h2>🗂️ Sistema de Categorización</h2>
+            
+            <div class="flip-cards-container">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <h3>📊 Por Función</h3>
+                            <p>Categoriza según la acción principal que realiza el prompt</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Ejemplos</h3>
+                            <ul style="text-align: left; list-style: none;">
+                                <li>🔍 Análisis</li>
+                                <li>✍️ Creación</li>
+                                <li>🔧 Optimización</li>
+                                <li>📚 Explicación</li>
+                                <li>🌐 Traducción</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <h3>🎯 Por Dominio</h3>
+                            <p>Organiza según el área de aplicación específica</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Ejemplos</h3>
+                            <ul style="text-align: left; list-style: none;">
+                                <li>📈 Marketing</li>
+                                <li>💻 Técnico</li>
+                                <li>🎓 Educativo</li>
+                                <li>💼 Empresarial</li>
+                                <li>🎨 Creativo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <h3>⚡ Por Urgencia</h3>
+                            <p>Prioriza según la frecuencia de uso y criticidad</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Niveles</h3>
+                            <ul style="text-align: left; list-style: none;">
+                                <li>🔥 Uso diario</li>
+                                <li>⭐ Uso semanal</li>
+                                <li>📝 Ocasional</li>
+                                <li>🔧 Especializado</li>
+                                <li>🧪 Experimental</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>🎨 Categorización por Tipo de Salida</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <p><strong>Organiza tus prompts según el formato de respuesta esperado:</strong></p>
+                            <ul class="icon-list">
+                                <li>
+                                    <div class="icon">📝</div>
+                                    <div><strong>Texto plano:</strong> Párrafos, explicaciones, descripciones</div>
+                                </li>
+                                <li>
+                                    <div class="icon">📋</div>
+                                    <div><strong>Listas estructuradas:</strong> Bullet points, numeraciones, categorías</div>
+                                </li>
+                                <li>
+                                    <div class="icon">📊</div>
+                                    <div><strong>Tablas y datos:</strong> Comparaciones, métricas, análisis</div>
+                                </li>
+                                <li>
+                                    <div class="icon">💻</div>
+                                    <div><strong>Código:</strong> Scripts, funciones, algoritmos</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>🎯 Categorización por Audiencia</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <p><strong>Adapta el tono y complejidad según tu público objetivo:</strong></p>
+                            <ul class="icon-list">
+                                <li>
+                                    <div class="icon">👔</div>
+                                    <div><strong>Ejecutivos:</strong> Resúmenes concisos, enfoque en ROI</div>
+                                </li>
+                                <li>
+                                    <div class="icon">🔧</div>
+                                    <div><strong>Técnicos:</strong> Detalles específicos, precisión técnica</div>
+                                </li>
+                                <li>
+                                    <div class="icon">🎓</div>
+                                    <div><strong>Principiantes:</strong> Explicaciones simples, ejemplos claros</div>
+                                </li>
+                                <li>
+                                    <div class="icon">🌍</div>
+                                    <div><strong>Público general:</strong> Lenguaje accesible, contexto amplio</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>⏱️ Categorización por Tiempo de Proceso</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <p><strong>Organiza según la complejidad y tiempo requerido:</strong></p>
+                            <ul class="icon-list">
+                                <li>
+                                    <div class="icon">⚡</div>
+                                    <div><strong>Rápidos (&lt;1 min):</strong> Respuestas simples, definiciones</div>
+                                </li>
+                                <li>
+                                    <div class="icon">🕐</div>
+                                    <div><strong>Moderados (1-5 min):</strong> Análisis básicos, listas</div>
+                                </li>
+                                <li>
+                                    <div class="icon">🕒</div>
+                                    <div><strong>Complejos (5+ min):</strong> Informes detallados, investigación</div>
+                                </li>
+                                <li>
+                                    <div class="icon">🔄</div>
+                                    <div><strong>Iterativos:</strong> Requieren múltiples rondas de refinamiento</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeModule(1)">Completar Categorización ✅</button>
+        </div>
+
+        <!-- Módulo 2: Documentación -->
+        <div class="module" id="module-2">
+            <h2>📝 Documentación de Prompts Exitosos</h2>
+            
+            <div class="labeled-graphic">
+                <svg width="600" height="400" viewBox="0 0 600 400" class="graphic-image">
+                    <!-- Fondo del documento -->
+                    <rect x="50" y="50" width="500" height="300" rx="15" fill="white" stroke="#e9ecef" stroke-width="2"/>
+                    
+                    <!-- Header del documento -->
+                    <rect x="50" y="50" width="500" height="60" rx="15" fill="#009EE3" opacity="0.1"/>
+                    <text x="300" y="85" text-anchor="middle" font-size="18" font-weight="bold" fill="#2c3e50">Documentación del Prompt</text>
+                    
+                    <!-- Secciones del documento -->
+                    <rect x="70" y="130" width="200" height="40" rx="8" fill="#729E2E" opacity="0.3"/>
+                    <text x="170" y="155" text-anchor="middle" font-size="12" font-weight="bold">Información Básica</text>
+                    
+                    <rect x="290" y="130" width="200" height="40" rx="8" fill="#E2A30B" opacity="0.3"/>
+                    <text x="390" y="155" text-anchor="middle" font-size="12" font-weight="bold">Contexto de Uso</text>
+                    
+                    <rect x="70" y="190" width="200" height="40" rx="8" fill="#DF501D" opacity="0.3"/>
+                    <text x="170" y="215" text-anchor="middle" font-size="12" font-weight="bold">Métricas</text>
+                    
+                    <rect x="290" y="190" width="200" height="40" rx="8" fill="#009EE3" opacity="0.3"/>
+                    <text x="390" y="215" text-anchor="middle" font-size="12" font-weight="bold">Ejemplos</text>
+                    
+                    <!-- Área de texto del prompt -->
+                    <rect x="70" y="250" width="460" height="80" rx="8" fill="#f8f9fa" stroke="#dee2e6"/>
+                    <text x="300" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="#2c3e50">Texto del Prompt</text>
+                    <line x1="90" y1="285" x2="510" y2="285" stroke="#dee2e6"/>
+                    <line x1="90" y1="295" x2="450" y2="295" stroke="#dee2e6"/>
+                    <line x1="90" y1="305" x2="480" y2="305" stroke="#dee2e6"/>
+                    <line x1="90" y1="315" x2="420" y2="315" stroke="#dee2e6"/>
+                </svg>
+                
+                <!-- Puntos interactivos -->
+                <div class="graphic-point" style="top: 32%; left: 28%;">1
+                    <div class="point-tooltip">Título descriptivo y categoría</div>
+                </div>
+                <div class="graphic-point" style="top: 32%; left: 65%;">2
+                    <div class="point-tooltip">Objetivo y casos de uso específicos</div>
+                </div>
+                <div class="graphic-point" style="top: 48%; left: 28%;">3
+                    <div class="point-tooltip">Tasa de éxito y tiempo promedio</div>
+                </div>
+                <div class="graphic-point" style="top: 48%; left: 65%;">4
+                    <div class="point-tooltip">Ejemplos de entrada y salida</div>
+                </div>
+                <div class="graphic-point" style="top: 70%; left: 50%;">5
+                    <div class="point-tooltip">Prompt completo con variables</div>
+                </div>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4 style="color: #009EE3; margin-bottom: 10px;">📋 Captura Inicial</h4>
+                        <p><strong>Momento:</strong> Inmediatamente después de un resultado exitoso</p>
+                        <p><strong>Acción:</strong> Copia el prompt exacto que funcionó</p>
+                        <p><strong>Tip:</strong> No edites ni "mejores" en esta fase</p>
+                    </div>
+                    <div class="timeline-marker"></div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4 style="color: #729E2E; margin-bottom: 10px;">🔍 Análisis de Contexto</h4>
+                        <p><strong>Pregúntate:</strong> ¿Qué hizo que este prompt funcionara?</p>
+                        <p><strong>Documenta:</strong> Situación específica, datos de entrada</p>
+                        <p><strong>Identifica:</strong> Variables clave y restricciones</p>
+                    </div>
+                    <div class="timeline-marker"></div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4 style="color: #E2A30B; margin-bottom: 10px;">📊 Medición de Efectividad</h4>
+                        <p><strong>Calidad:</strong> Puntuación subjetiva 1-10</p>
+                        <p><strong>Velocidad:</strong> Tiempo hasta obtener resultado satisfactorio</p>
+                        <p><strong>Consistencia:</strong> % de éxito en múltiples pruebas</p>
+                    </div>
+                    <div class="timeline-marker"></div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4 style="color: #DF501D; margin-bottom: 10px;">✏️ Refinamiento</h4>
+                        <p><strong>Generaliza:</strong> Identifica partes reutilizables</p>
+                        <p><strong>Parametriza:</strong> Convierte en plantilla si aplica</p>
+                        <p><strong>Mejora:</strong> Basándote en múltiples usos</p>
+                    </div>
+                    <div class="timeline-marker"></div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeModule(2)">Completar Documentación ✅</button>
+        </div>
+
+        <!-- Módulo 3: Variables y Plantillas -->
+        <div class="module" id="module-3">
+            <h2>🔧 Variables y Plantillas Reutilizables</h2>
+            
+            <div class="content-with-image">
+                <div>
+                    <h3 style="color: #009EE3; margin-bottom: 15px;">¿Qué son las Plantillas de Prompts?</h3>
+                    <p style="margin-bottom: 15px;">
+                        Una <strong>plantilla de prompt</strong> es un marco reutilizable donde defines la estructura 
+                        y lógica, pero dejas espacios (variables) que puedes llenar con contenido específico.
+                    </p>
+                    <p style="margin-bottom: 15px;">
+                        Es como tener un molde perfeccionado que puedes usar una y otra vez, 
+                        simplemente cambiando los ingredientes según la situación.
+                    </p>
+                    <div style="background: rgba(0, 158, 227, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #009EE3;">
+                        <strong>💡 Ejemplo:</strong><br>
+                        En lugar de crear un prompt nuevo cada vez, usas:<br>
+                        <code style="background: white; padding: 5px; border-radius: 4px;">
+                            "Actúa como {ROLE} y analiza {INPUT} para {OBJECTIVE}"
+                        </code>
+                    </div>
+                </div>
+                <svg width="300" height="250" viewBox="0 0 300 250">
+                    <rect x="20" y="30" width="260" height="190" rx="15" fill="#729E2E" opacity="0.1"/>
+                    <!-- Plantilla base -->
+                    <rect x="40" y="60" width="220" height="30" rx="5" fill="#009EE3" opacity="0.8"/>
+                    <text x="150" y="80" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Estructura Base</text>
+                    <!-- Variables -->
+                    <rect x="50" y="110" width="60" height="25" rx="5" fill="#E2A30B"/>
+                    <text x="80" y="127" text-anchor="middle" fill="white" font-size="10">{VAR1}</text>
+                    <rect x="120" y="110" width="60" height="25" rx="5" fill="#DF501D"/>
+                    <text x="150" y="127" text-anchor="middle" fill="white" font-size="10">{VAR2}</text>
+                    <rect x="190" y="110" width="60" height="25" rx="5" fill="#729E2E"/>
+                    <text x="220" y="127" text-anchor="middle" fill="white" font-size="10">{VAR3}</text>
+                    <!-- Flecha -->
+                    <path d="M150 150 L150 170" stroke="#2c3e50" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                    <!-- Resultado -->
+                    <rect x="40" y="180" width="220" height="30" rx="5" fill="#2c3e50" opacity="0.8"/>
+                    <text x="150" y="200" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Prompt Personalizado</text>
+                    
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#2c3e50"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" onclick="switchTab('syntax')">📝 Sintaxis</button>
+                    <button class="tab-btn" onclick="switchTab('examples')">💡 Ejemplos</button>
+                    <button class="tab-btn" onclick="switchTab('advanced')">🚀 Avanzado</button>
+                </div>
+                
+                <div class="tab-content active" id="syntax">
+                    <h4 style="color: #729E2E; margin-bottom: 20px;">🔤 Sintaxis de Variables</h4>
+                    <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin: 20px 0;">
+                        <p><strong>Formato básico:</strong> <code style="background: white; padding: 8px 12px; border-radius: 6px; color: #009EE3; font-weight: bold;">{NOMBRE_VARIABLE}</code></p>
+                        
+                        <div style="margin-top: 20px;">
+                            <h5 style="color: #2c3e50; margin-bottom: 10px;">Variables comunes:</h5>
+                            <ul class="icon-list">
+                                <li>
+                                    <div class="icon" style="background: #009EE3;">🎭</div>
+                                    <div><code>{ROLE}</code> - El papel que debe asumir la IA</div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #729E2E;">📥</div>
+                                    <div><code>{INPUT}</code> - Los datos o contenido a procesar</div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #E2A30B;">🎯</div>
+                                    <div><code>{OBJECTIVE}</code> - El objetivo específico</div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #DF501D;">📋</div>
+                                    <div><code>{FORMAT}</code> - Formato de la respuesta</div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #6c757d;">👥</div>
+                                    <div><code>{AUDIENCE}</code> - Audiencia objetivo</div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #17a2b8;">🎨</div>
+                                    <div><code>{TONE}</code> - Tono de comunicación</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="examples">
+                    <h4 style="color: #E2A30B; margin-bottom: 20px;">💡 Plantillas de Ejemplo</h4>
+                    
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>📊 Análisis de Datos</span>
+                                <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; font-family: monospace; margin: 10px 0;">
+                                        Actúa como un <strong style="color: #009EE3;">{DATA_ANALYST_TYPE}</strong> especializado en <strong style="color: #729E2E;">{INDUSTRY}</strong>.<br><br>
+                                        
+                                        Analiza los siguientes datos: <strong style="color: #E2A30B;">{DATA_INPUT}</strong><br><br>
+                                        
+                                        Proporciona insights sobre <strong style="color: #DF501D;">{ANALYSIS_FOCUS}</strong> dirigidos a <strong style="color: #6c757d;">{AUDIENCE}</strong>.<br><br>
+                                        
+                                        Formato de respuesta: <strong style="color: #17a2b8;">{OUTPUT_FORMAT}</strong>
+                                    </div>
+                                    <p><strong>Variables:</strong> DATA_ANALYST_TYPE, INDUSTRY, DATA_INPUT, ANALYSIS_FOCUS, AUDIENCE, OUTPUT_FORMAT</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>✍️ Creación de Contenido</span>
+                                <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; font-family: monospace; margin: 10px 0;">
+                                        Eres un <strong style="color: #009EE3;">{CONTENT_CREATOR_TYPE}</strong> experto en <strong style="color: #729E2E;">{NICHE}</strong>.<br><br>
+                                        
+                                        Crea <strong style="color: #E2A30B;">{CONTENT_TYPE}</strong> sobre "<strong style="color: #DF501D;">{TOPIC}</strong>".<br><br>
+                                        
+                                        Audiencia: <strong style="color: #6c757d;">{TARGET_AUDIENCE}</strong><br>
+                                        Tono: <strong style="color: #17a2b8;">{TONE}</strong><br>
+                                        Longitud: <strong style="color: #28a745;">{LENGTH}</strong><br><br>
+                                        
+                                        Incluye <strong style="color: #dc3545;">{SPECIAL_REQUIREMENTS}</strong>
+                                    </div>
+                                    <p><strong>Variables:</strong> CONTENT_CREATOR_TYPE, NICHE, CONTENT_TYPE, TOPIC, TARGET_AUDIENCE, TONE, LENGTH, SPECIAL_REQUIREMENTS</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>🔧 Resolución de Problemas</span>
+                                <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; font-family: monospace; margin: 10px 0;">
+                                        Actúa como un <strong style="color: #009EE3;">{EXPERT_TYPE}</strong> con <strong style="color: #729E2E;">{EXPERIENCE_LEVEL}</strong> años de experiencia.<br><br>
+                                        
+                                        Problema: <strong style="color: #E2A30B;">{PROBLEM_DESCRIPTION}</strong><br><br>
+                                        
+                                        Contexto adicional: <strong style="color: #DF501D;">{CONTEXT}</strong><br><br>
+                                        
+                                        Proporciona una solución <strong style="color: #6c757d;">{SOLUTION_TYPE}</strong> considerando <strong style="color: #17a2b8;">{CONSTRAINTS}</strong>
+                                    </div>
+                                    <p><strong>Variables:</strong> EXPERT_TYPE, EXPERIENCE_LEVEL, PROBLEM_DESCRIPTION, CONTEXT, SOLUTION_TYPE, CONSTRAINTS</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="advanced">
+                    <h4 style="color: #DF501D; margin-bottom: 20px;">🚀 Técnicas Avanzadas</h4>
+                    
+                    <ul class="icon-list">
+                        <li>
+                            <div class="icon" style="background: #009EE3;">🔗</div>
+                            <div>
+                                <strong>Variables anidadas:</strong> <code>{ROLE_{SPECIALTY}}</code> permite mayor especificidad
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon" style="background: #729E2E;">📋</div>
+                            <div>
+                                <strong>Variables condicionales:</strong> <code>{IF_TECHNICAL?DETAILS:SUMMARY}</code> adapta contenido
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon" style="background: #E2A30B;">🎲</div>
+                            <div>
+                                <strong>Variables con opciones:</strong> <code>{TONE:FORMAL|CASUAL|TÉCNICO}</code> define alternativas
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon" style="background: #DF501D;">🔄</div>
+                            <div>
+                                <strong>Variables iterativas:</strong> <code>{EXAMPLES[1-5]}</code> para múltiples instancias
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon" style="background: #6c757d;">📏</div>
+                            <div>
+                                <strong>Variables con validación:</strong> <code>{BUDGET:>0&<10000}</code> establece límites
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon" style="background: #17a2b8;">🎯</div>
+                            <div>
+                                <strong>Variables con contexto:</strong> <code>{FOCUS_AREA:SALES_CONTEXT}</code> mantiene coherencia
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div style="background: rgba(223, 80, 29, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #DF501D;">
+                        <h5 style="color: #DF501D; margin-bottom: 10px;">⚠️ Mejores Prácticas</h5>
+                        <ul style="margin-left: 20px;">
+                            <li>Usa nombres descriptivos en MAYÚSCULAS</li>
+                            <li>Agrupa variables relacionadas con prefijos</li>
+                            <li>Documenta el rango de valores esperados</li>
+                            <li>Prueba con valores extremos</li>
+                            <li>Incluye valores por defecto cuando sea posible</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeModule(3)">Completar Plantillas ✅</button>
+        </div>
+
+        <!-- Módulo 4: Versionado -->
+        <div class="module" id="module-4">
+            <h2>📊 Versionado y Mejora Continua</h2>
+            
+            <div class="content-with-image">
+                <div>
+                    <h3 style="color: #729E2E; margin-bottom: 15px;">¿Por qué Versionar tus Prompts?</h3>
+                    <p style="margin-bottom: 15px;">
+                        El <strong>versionado</strong> te permite mantener un historial completo de la evolución 
+                        de tus prompts, comparar rendimientos y regresar a versiones anteriores si es necesario.
+                    </p>
+                    <p style="margin-bottom: 15px;">
+                        Es como tener un "control de cambios" profesional que documenta cada mejora, 
+                        error y optimización en tu biblioteca de prompts.
+                    </p>
+                    <div style="background: rgba(114, 158, 46, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #729E2E;">
+                        <strong>💡 Beneficio clave:</strong><br>
+                        Nunca más perderás un prompt que funcionaba bien o te preguntarás 
+                        "¿cuál era la versión que daba mejores resultados?"
+                    </div>
+                </div>
+                <svg width="300" height="280" viewBox="0 0 300 280">
+                    <!-- Timeline vertical -->
+                    <line x1="150" y1="30" x2="150" y2="250" stroke="#009EE3" stroke-width="4"/>
+                    
+                    <!-- Versiones -->
+                    <circle cx="150" cy="50" r="12" fill="#729E2E"/>
+                    <text x="170" y="55" font-size="14" font-weight="bold">v1.0.0</text>
+                    <text x="170" y="70" font-size="10" fill="#6c757d">Versión inicial</text>
+                    
+                    <circle cx="150" cy="100" r="12" fill="#E2A30B"/>
+                    <text x="170" y="105" font-size="14" font-weight="bold">v1.1.0</text>
+                    <text x="170" y="120" font-size="10" fill="#6c757d">Mejora menor</text>
+                    
+                    <circle cx="150" cy="150" r="12" fill="#DF501D"/>
+                    <text x="170" y="155" font-size="14" font-weight="bold">v1.1.1</text>
+                    <text x="170" y="170" font-size="10" fill="#6c757d">Corrección</text>
+                    
+                    <circle cx="150" cy="200" r="12" fill="#009EE3"/>
+                    <text x="170" y="205" font-size="14" font-weight="bold">v2.0.0</text>
+                    <text x="170" y="220" font-size="10" fill="#6c757d">Cambio mayor</text>
+                    
+                    <!-- Métricas de rendimiento -->
+                    <rect x="20" y="40" width="60" height="20" rx="4" fill="#729E2E" opacity="0.8"/>
+                    <text x="50" y="54" text-anchor="middle" fill="white" font-size="10" font-weight="bold">75%</text>
+                    
+                    <rect x="20" y="90" width="80" height="20" rx="4" fill="#E2A30B" opacity="0.8"/>
+                    <text x="60" y="104" text-anchor="middle" fill="white" font-size="10" font-weight="bold">85%</text>
+                    
+                    <rect x="20" y="140" width="70" height="20" rx="4" fill="#DF501D" opacity="0.8"/>
+                    <text x="55" y="154" text-anchor="middle" fill="white" font-size="10" font-weight="bold">82%</text>
+                    
+                    <rect x="20" y="190" width="90" height="20" rx="4" fill="#009EE3" opacity="0.8"/>
+                    <text x="65" y="204" text-anchor="middle" fill="white" font-size="10" font-weight="bold">92%</text>
+                </svg>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" onclick="switchTab('semantic')">🏷️ Versionado Semántico</button>
+                    <button class="tab-btn" onclick="switchTab('changelog')">📝 Changelog</button>
+                    <button class="tab-btn" onclick="switchTab('comparison')">📊 Comparación</button>
+                </div>
+                
+                <div class="tab-content active" id="semantic">
+                    <h4 style="color: #009EE3; margin-bottom: 20px;">🏷️ Sistema de Versionado Semántico</h4>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="display: inline-block; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+                            <h3 style="margin-bottom: 20px; color: #2c3e50;">v<span style="color: #DF501D;">MAJOR</span>.<span style="color: #E2A30B;">MINOR</span>.<span style="color: #729E2E;">PATCH</span></h3>
+                            <div style="display: flex; justify-content: space-between; gap: 30px;">
+                                <div style="text-align: center;">
+                                    <div style="width: 60px; height: 60px; background: #DF501D; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 24px; font-weight: bold;">2</div>
+                                    <h5 style="color: #DF501D;">MAJOR</h5>
+                                    <p style="font-size: 12px; color: #6c757d;">Cambios<br>significativos</p>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="width: 60px; height: 60px; background: #E2A30B; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 24px; font-weight: bold;">1</div>
+                                    <h5 style="color: #E2A30B;">MINOR</h5>
+                                    <p style="font-size: 12px; color: #6c757d;">Nuevas<br>funcionalidades</p>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="width: 60px; height: 60px; background: #729E2E; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 24px; font-weight: bold;">3</div>
+                                    <h5 style="color: #729E2E;">PATCH</h5>
+                                    <p style="font-size: 12px; color: #6c757d;">Correcciones<br>menores</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span style="color: #DF501D;">🔴 MAJOR - Cambios Significativos</span>
+                                <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <ul class="icon-list">
+                                        <li>
+                                            <div class="icon" style="background: #DF501D;">🔄</div>
+                                            <div>Cambio completo en la estructura del prompt</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #DF501D;">🎯</div>
+                                            <div>Modificación radical del objetivo principal</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #DF501D;">🔧</div>
+                                            <div>Incompatibilidad con versiones anteriores</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #DF501D;">📊</div>
+                                            <div>Cambio significativo en el tipo de output</div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span style="color: #E2A30B;">🟡 MINOR - Nuevas Funcionalidades</span>
+                                <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <ul class="icon-list">
+                                        <li>
+                                            <div class="icon" style="background: #E2A30B;">➕</div>
+                                            <div>Adición de nuevas instrucciones o parámetros</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #E2A30B;">🎨</div>
+                                            <div>Mejora en la calidad o detalle de respuestas</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #E2A30B;">📈</div>
+                                            <div>Optimización que mejora significativamente el rendimiento</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #E2A30B;">🔧</div>
+                                            <div>Mantiene compatibilidad con versiones anteriores</div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span style="color: #729E2E;">🟢 PATCH - Correcciones Menores</span>
+                                <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <ul class="icon-list">
+                                        <li>
+                                            <div class="icon" style="background: #729E2E;">🔧</div>
+                                            <div>Corrección de errores o ambigüedades</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #729E2E;">📝</div>
+                                            <div>Mejoras menores en la claridad del texto</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #729E2E;">🎯</div>
+                                            <div>Ajustes de precisión sin cambiar funcionalidad</div>
+                                        </li>
+                                        <li>
+                                            <div class="icon" style="background: #729E2E;">📋</div>
+                                            <div>Actualizaciones de documentación o ejemplos</div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="changelog">
+                    <h4 style="color: #E2A30B; margin-bottom: 20px;">📝 Documentando Cambios</h4>
+                    
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h5 style="color: #009EE3;">v2.1.0</h5>
+                                    <span style="background: #729E2E; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">MINOR</span>
+                                </div>
+                                <p><strong>Fecha:</strong> 15 Mar 2024</p>
+                                <p><strong>Cambios:</strong></p>
+                                <ul style="margin-left: 20px; margin-top: 8px;">
+                                    <li>➕ Agregada instrucción para incluir métricas cuantitativas</li>
+                                    <li>🎯 Mejorada especificidad en análisis de tendencias</li>
+                                    <li>📊 Incremento del 15% en calidad de insights</li>
+                                </ul>
+                            </div>
+                            <div class="timeline-marker"></div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h5 style="color: #009EE3;">v2.0.1</h5>
+                                    <span style="background: #E2A30B; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">PATCH</span>
+                                </div>
+                                <p><strong>Fecha:</strong> 8 Mar 2024</p>
+                                <p><strong>Cambios:</strong></p>
+                                <ul style="margin-left: 20px; margin-top: 8px;">
+                                    <li>🔧 Corregida ambigüedad en instrucciones de formato</li>
+                                    <li>📝 Clarificada definición de "análisis profundo"</li>
+                                </ul>
+                            </div>
+                            <div class="timeline-marker"></div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h5 style="color: #009EE3;">v2.0.0</h5>
+                                    <span style="background: #DF501D; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">MAJOR</span>
+                                </div>
+                                <p><strong>Fecha:</strong> 1 Mar 2024</p>
+                                <p><strong>Cambios:</strong></p>
+                                <ul style="margin-left: 20px; margin-top: 8px;">
+                                    <li>🔄 Reestructuración completa del prompt</li>
+                                    <li>🎯 Cambio de enfoque: de descriptivo a prescriptivo</li>
+                                    <li>📊 Mejora del 40% en actionabilidad de resultados</li>
+                                </ul>
+                            </div>
+                            <div class="timeline-marker"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="comparison">
+                    <h4 style="color: #729E2E; margin-bottom: 20px;">📊 Comparación de Rendimiento</h4>
+                    
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin: 20px 0;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #009EE3, #0077B3); color: white; border-radius: 12px;">
+                                <h3>v1.0.0</h3>
+                                <div style="font-size: 2.5em; font-weight: bold; margin: 15px 0;">75%</div>
+                                <p>Tasa de éxito</p>
+                                <div style="font-size: 0.9em; margin-top: 10px; opacity: 0.9;">⏱️ 3.2 min promedio</div>
+                            </div>
+                            
+                            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #E2A30B, #C8941A); color: white; border-radius: 12px;">
+                                <h3>v1.5.0</h3>
+                                <div style="font-size: 2.5em; font-weight: bold; margin: 15px 0;">85%</div>
+                                <p>Tasa de éxito</p>
+                                <div style="font-size: 0.9em; margin-top: 10px; opacity: 0.9;">⏱️ 2.8 min promedio</div>
+                            </div>
+                            
+                            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #729E2E, #5A7A23); color: white; border-radius: 12px; border: 3px solid #FFD700;">
+                                <h3>v2.0.0</h3>
+                                <div style="font-size: 2.5em; font-weight: bold; margin: 15px 0;">92%</div>
+                                <p>Tasa de éxito</p>
+                                <div style="font-size: 0.9em; margin-top: 10px; opacity: 0.9;">⏱️ 2.1 min promedio</div>
+                                <div style="position: absolute; top: -10px; right: -10px; background: #FFD700; color: #2c3e50; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">ACTUAL</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <h5 style="color: #2c3e50; margin-bottom: 15px;">📈 Métricas de Evolución</h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <div style="color: #729E2E; font-size: 1.8em; font-weight: bold;">+17%</div>
+                                    <div style="color: #6c757d; font-size: 0.9em;">Mejora total</div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <div style="color: #009EE3; font-size: 1.8em; font-weight: bold;">-34%</div>
+                                    <div style="color: #6c757d; font-size: 0.9em;">Tiempo reducido</div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <div style="color: #E2A30B; font-size: 1.8em; font-weight: bold;">8</div>
+                                    <div style="color: #6c757d; font-size: 0.9em;">Iteraciones</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeModule(4)">Completar Versionado ✅</button>
+        </div>
+
+        <!-- Módulo 5: Colaboración -->
+        <div class="module" id="module-5">
+            <h2>🤝 Compartir y Colaborar</h2>
+            
+            <div class="flip-cards-container">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <h3>👥 Equipos Internos</h3>
+                            <p>Colaboración dentro de tu organización</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Herramientas</h3>
+                            <ul style="text-align: left; list-style: none;">
+                                <li>📁 SharePoint/Drive</li>
+                                <li>📝 Notion/Confluence</li>
+                                <li>💬 Slack/Teams</li>
+                                <li>📊 Airtable</li>
+                                <li>🔄 Git repositories</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <h3>🌍 Comunidades</h3>
+                            <p>Compartir con la comunidad global</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Plataformas</h3>
+                            <ul style="text-align: left; list-style: none;">
+                                <li>🐙 GitHub Gists</li>
+                                <li>💬 Discord servers</li>
+                                <li>📱 Reddit communities</li>
+                                <li>🐦 Twitter threads</li>
+                                <li>📚 Prompt libraries</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <h3>🔄 Feedback</h3>
+                            <p>Mejora colaborativa continua</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Procesos</h3>
+                            <ul style="text-align: left; list-style: none;">
+                                <li>⭐ Sistema de ratings</li>
+                                <li>💬 Comentarios</li>
+                                <li>🔧 Pull requests</li>
+                                <li>📊 Métricas compartidas</li>
+                                <li>🎯 A/B testing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>📋 Mejores Prácticas de Documentación</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <ul class="icon-list">
+                                <li>
+                                    <div class="icon" style="background: #009EE3;">📝</div>
+                                    <div>
+                                        <strong>README completo:</strong> Incluye propósito, uso, ejemplos y limitaciones
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #729E2E;">🏷️</div>
+                                    <div>
+                                        <strong>Tags descriptivos:</strong> Facilita búsqueda y categorización
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #E2A30B;">📊</div>
+                                    <div>
+                                        <strong>Métricas de rendimiento:</strong> Comparte datos reales de efectividad
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #DF501D;">🔄</div>
+                                    <div>
+                                        <strong>Historial de cambios:</strong> Documenta evolución y razones
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>🔒 Consideraciones de Seguridad</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <ul class="icon-list">
+                                <li>
+                                    <div class="icon" style="background: #DF501D;">🚫</div>
+                                    <div>
+                                        <strong>Información sensible:</strong> Nunca incluyas datos confidenciales
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #E2A30B;">🔐</div>
+                                    <div>
+                                        <strong>Niveles de acceso:</strong> Define quién puede ver/editar cada prompt
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #009EE3;">📋</div>
+                                    <div>
+                                        <strong>Políticas de uso:</strong> Establece términos claros de utilización
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #729E2E;">✅</div>
+                                    <div>
+                                        <strong>Revisión antes de publicar:</strong> Proceso de validación interno
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>🎯 Estrategias de Adopción</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <ul class="icon-list">
+                                <li>
+                                    <div class="icon" style="background: #729E2E;">🎓</div>
+                                    <div>
+                                        <strong>Capacitación:</strong> Entrena a tu equipo en el uso de la biblioteca
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #009EE3;">🏆</div>
+                                    <div>
+                                        <strong>Incentivos:</strong> Reconoce contribuciones valiosas
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #E2A30B;">📈</div>
+                                    <div>
+                                        <strong>Métricas de adopción:</strong> Mide uso y satisfacción
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="icon" style="background: #DF501D;">🔄</div>
+                                    <div>
+                                        <strong>Iteración continua:</strong> Mejora basada en feedback
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeModule(5)">Completar Colaboración ✅</button>
+        </div>
+
+        <!-- Módulo 6: Evaluación -->
+        <div class="module" id="module-6">
+            <h2>🎯 Evaluación Final</h2>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <h3 style="color: #2c3e50; margin-bottom: 20px;">¡Hora de demostrar tu conocimiento!</h3>
+                <p style="font-size: 1.1em; color: #6c757d; margin-bottom: 30px;">
+                    Completa esta actividad de arrastrar y soltar para validar tu comprensión 
+                    de los conceptos clave del curso.
+                </p>
+            </div>
+
+            <div class="drag-drop-container">
+                <h4 style="text-align: center; margin-bottom: 25px; color: #2c3e50;">
+                    🎲 Arrastra cada concepto a su categoría correcta
+                </h4>
+                
+                <div class="drag-items" id="dragItems">
+                    <div class="drag-item" draggable="true" data-category="categorization">v2.1.0</div>
+                    <div class="drag-item" draggable="true" data-category="templates">{ROLE}</div>
+                    <div class="drag-item" draggable="true" data-category="categorization">📊 Análisis</div>
+                    <div class="drag-item" draggable="true" data-category="versioning">MAJOR.MINOR.PATCH</div>
+                    <div class="drag-item" draggable="true" data-category="documentation">Tasa de éxito: 85%</div>
+                    <div class="drag-item" draggable="true" data-category="templates">{INPUT}</div>
+                    <div class="drag-item" draggable="true" data-category="collaboration">GitHub Repository</div>
+                    <div class="drag-item" draggable="true" data-category="documentation">Casos de uso específicos</div>
+                    <div class="drag-item" draggable="true" data-category="versioning">Changelog</div>
+                    <div class="drag-item" draggable="true" data-category="collaboration">Sistema de ratings</div>
+                    <div class="drag-item" draggable="true" data-category="categorization">🎯 Por función</div>
+                    <div class="drag-item" draggable="true" data-category="templates">{FORMAT}</div>
+                </div>
+
+                <div class="drop-zones">
+                    <div class="drop-zone" data-category="categorization" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>🗂️ Categorización</h4>
+                        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+                            Sistema de organización de prompts
+                        </p>
+                        <div class="dropped-items"></div>
+                    </div>
+
+                    <div class="drop-zone" data-category="documentation" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>📝 Documentación</h4>
+                        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+                            Registro de prompts exitosos
+                        </p>
+                        <div class="dropped-items"></div>
+                    </div>
+
+                    <div class="drop-zone" data-category="templates" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>🔧 Plantillas</h4>
+                        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+                            Variables y estructuras reutilizables
+                        </p>
+                        <div class="dropped-items"></div>
+                    </div>
+
+                    <div class="drop-zone" data-category="versioning" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>📊 Versionado</h4>
+                        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+                            Control de cambios y mejoras
+                        </p>
+                        <div class="dropped-items"></div>
+                    </div>
+
+                    <div class="drop-zone" data-category="collaboration" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>🤝 Colaboración</h4>
+                        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+                            Compartir y trabajar en equipo
+                        </p>
+                        <div class="dropped-items"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="checkDragDropAnswers()" id="checkAnswersBtn" style="display: none;">
+                        Verificar Respuestas 🎯
+                    </button>
+                    <button class="btn secondary" onclick="resetDragDrop()">
+                        Reiniciar Actividad 🔄
+                    </button>
+                </div>
+
+                <div id="dragDropResults" style="display: none; margin-top: 20px; padding: 20px; border-radius: 12px;">
+                    <!-- Resultados se mostrarán aquí -->
+                </div>
+            </div>
+
+            <div id="finalCertificate" style="display: none; margin-top: 40px;">
+                <div style="background: linear-gradient(135deg, #009EE3, #729E2E); color: white; padding: 40px; border-radius: 20px; text-align: center; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg);"></div>
+                    <div style="position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+                    
+                    <h2 style="margin-bottom: 20px; font-size: 2.5em;">🏆 CERTIFICADO DE COMPLETADO</h2>
+                    <h3 style="margin-bottom: 30px; font-size: 1.8em; opacity: 0.9;">
+                        Construcción de Bibliotecas Personales de Prompts
+                    </h3>
+                    
+                    <div style="background: rgba(255,255,255,0.2); padding: 25px; border-radius: 15px; margin: 30px 0; backdrop-filter: blur(5px);">
+                        <h4 style="margin-bottom: 15px;">Has dominado exitosamente:</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                            <div>✅ Sistema de categorización</div>
+                            <div>✅ Documentación efectiva</div>
+                            <div>✅ Creación de plantillas</div>
+                            <div>✅ Versionado semántico</div>
+                            <div>✅ Estrategias de colaboración</div>
+                            <div>✅ Evaluación práctica</div>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 1.2em; margin: 25px 0;">
+                        Fecha de completado: <span id="completionDate"></span>
+                    </p>
+                    <div style="background: #FFD700; color: #2c3e50; padding: 12px 30px; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 1.1em;">
+                        🎖️ EXPERTO EN PROMPTS CERTIFICADO
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" id="completeCourseBtn" onclick="completeCourse()" style="display: none;">
+                Finalizar Curso 🎓
+            </button>
+        </div>
+    </div>
+
+    <div class="floating-help" onclick="showHelp()" title="¿Necesitas ayuda?">?</div>
+
+    <script>
+        // Estado global del curso
+        let courseData = {
+            currentModule: 0,
+            completedModules: [],
+            startTime: new Date(),
+            dragDropComplete: false,
+            dragDropScore: 0
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProgress();
+            updateProgress();
+            setupDragAndDrop();
+        });
+
+        // Navegación entre módulos
+        function showModule(moduleIndex) {
+            const modules = document.querySelectorAll('.module');
+            modules.forEach(module => module.classList.remove('active'));
+            
+            document.getElementById(`module-${moduleIndex}`).classList.add('active');
+            
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach((btn, index) => {
+                btn.classList.toggle('active', index === moduleIndex);
+            });
+            
+            courseData.currentModule = moduleIndex;
+            saveProgress();
+        }
+
+        // Completar módulo
+        function completeModule(moduleIndex) {
+            if (!courseData.completedModules.includes(moduleIndex)) {
+                courseData.completedModules.push(moduleIndex);
+                
+                // Marcar botón como completado
+                const navBtns = document.querySelectorAll('.nav-btn');
+                navBtns[moduleIndex].classList.add('completed');
+                
+                saveProgress();
+                updateProgress();
+                showNotification(`✅ Módulo ${moduleIndex + 1} completado exitosamente!`);
+                
+                // Avanzar al siguiente módulo
+                if (moduleIndex < 6) {
+                    setTimeout(() => {
+                        showModule(moduleIndex + 1);
+                    }, 2000);
+                }
+            }
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress() {
+            const totalModules = 7;
+            const progress = (courseData.completedModules.length / totalModules) * 100;
+            
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `Progreso: ${Math.round(progress)}% completado`;
+            
+            if (progress === 100) {
+                document.getElementById('completeCourseBtn').style.display = 'inline-block';
+            }
+        }
+
+        // Sistema de tabs
+        function switchTab(tabId) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            
+            tabContents.forEach(content => content.classList.remove('active'));
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Sistema de acordeón
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.accordion-icon');
+            
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+            
+            if (content.classList.contains('active')) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.maxHeight = '0';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Sistema de drag and drop
+        function setupDragAndDrop() {
+            const dragItems = document.querySelectorAll('.drag-item');
+            
+            dragItems.forEach(item => {
+                item.addEventListener('dragstart', dragStart);
+                item.addEventListener('dragend', dragEnd);
+            });
+        }
+
+        function dragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.textContent);
+            e.dataTransfer.setData('application/x-category', e.target.dataset.category);
+            e.target.classList.add('dragging');
+        }
+
+        function dragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function allowDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const dropZone = e.currentTarget;
+            dropZone.classList.remove('drag-over');
+            
+            const draggedText = e.dataTransfer.getData('text/plain');
+            const draggedCategory = e.dataTransfer.getData('application/x-category');
+            const targetCategory = dropZone.dataset.category;
+            
+            // Encontrar el elemento arrastrado
+            const draggedElement = Array.from(document.querySelectorAll('.drag-item')).find(item => item.textContent === draggedText);
+            
+            if (draggedElement) {
+                // Mover el elemento a la zona de drop
+                const droppedItems = dropZone.querySelector('.dropped-items');
+                droppedItems.appendChild(draggedElement);
+                
+                // Actualizar estilo
+                draggedElement.style.background = draggedCategory === targetCategory ? 
+                    'linear-gradient(45deg, #729E2E, #5A7A23)' : 
+                    'linear-gradient(45deg, #DF501D, #B8401A)';
+                
+                draggedElement.style.cursor = 'default';
+                draggedElement.draggable = false;
+                
+                checkIfDragDropComplete();
+            }
+        }
+
+        function checkIfDragDropComplete() {
+            const remainingItems = document.querySelector('#dragItems').children.length;
+            if (remainingItems === 0) {
+                document.getElementById('checkAnswersBtn').style.display = 'inline-block';
+                courseData.dragDropComplete = true;
+            }
+        }
+
+        function checkDragDropAnswers() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let correctAnswers = 0;
+            let totalAnswers = 0;
+            let results = [];
+            
+            dropZones.forEach(zone => {
+                const category = zone.dataset.category;
+                const droppedItems = zone.querySelectorAll('.drag-item');
+                
+                droppedItems.forEach(item => {
+                    totalAnswers++;
+                    const itemCategory = item.dataset.category;
+                    if (itemCategory === category) {
+                        correctAnswers++;
+                        results.push(`✅ "${item.textContent}" - Correcto`);
+                        zone.classList.add('correct');
+                    } else {
+                        results.push(`❌ "${item.textContent}" - Incorrecto`);
+                        zone.classList.add('incorrect');
+                    }
+                });
+            });
+            
+            const score = Math.round((correctAnswers / totalAnswers) * 100);
+            courseData.dragDropScore = score;
+            
+            const resultsDiv = document.getElementById('dragDropResults');
+            resultsDiv.innerHTML = `
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">📊 Resultados de la Evaluación</h4>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 3em; font-weight: bold; color: ${score >= 80 ? '#729E2E' : '#DF501D'};">
+                        ${score}%
+                    </div>
+                    <p style="font-size: 1.2em; margin: 10px 0; color: #2c3e50;">
+                        ${correctAnswers}/${totalAnswers} respuestas correctas
+                    </p>
+                </div>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                    ${results.map(result => `<div style="margin: 8px 0;">${result}</div>`).join('')}
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    ${score >= 80 ? 
+                        '<div style="color: #729E2E; font-weight: bold; font-size: 1.2em;">🎉 ¡Excelente! Has demostrado dominio completo del tema.</div>' : 
+                        '<div style="color: #DF501D; font-weight: bold; font-size: 1.2em;">📚 Te recomendamos revisar los conceptos antes de continuar.</div>'
+                    }
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+            
+            if (score >= 80) {
+                setTimeout(() => {
+                    document.getElementById('finalCertificate').style.display = 'block';
+                    document.getElementById('completionDate').textContent = new Date().toLocaleDateString('es-ES');
+                    completeModule(6);
+                }, 1500);
+            }
+            
+            saveProgress();
+        }
+
+        function resetDragDrop() {
+            const dragItems = document.querySelector('#dragItems');
+            const allItems = document.querySelectorAll('.drag-item');
+            
+            allItems.forEach(item => {
+                dragItems.appendChild(item);
+                item.style.background = 'linear-gradient(45deg, #009EE3, #0077B3)';
+                item.style.cursor = 'grab';
+                item.draggable = true;
+            });
+            
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('correct', 'incorrect');
+            });
+            
+            document.getElementById('checkAnswersBtn').style.display = 'none';
+            document.getElementById('dragDropResults').style.display = 'none';
+            courseData.dragDropComplete = false;
+        }
+
+        function completeCourse() {
+            if (!courseData.dragDropComplete || courseData.dragDropScore < 80) {
+                showNotification('❌ Debes completar la evaluación con al menos 80% de aciertos', 'error');
+                return;
+            }
+            
+            const duration = new Date() - courseData.startTime;
+            const minutes = Math.round(duration / 60000);
+            
+            showNotification(`🎓 ¡FELICITACIONES!
+
+Has completado exitosamente el curso "Construcción de una Biblioteca Personal de Prompts".
+
+📊 Tu rendimiento:
+• Tiempo total: ${minutes} minutos
+• Evaluación: ${courseData.dragDropScore}%
+• Módulos completados: ${courseData.completedModules.length}/7
+
+🏆 Ahora eres oficialmente un EXPERTO EN PROMPTS
+
+¡Aplica lo aprendido y construye bibliotecas increíbles!`);
+            
+            // Simular envío de datos SCORM
+            if (window.API) {
+                window.API.SetValue("cmi.core.lesson_status", "completed");
+                window.API.SetValue("cmi.core.score.raw", courseData.dragDropScore);
+                window.API.Commit("");
+            }
+        }
+
+        // Funciones auxiliares
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification show ${type}`;
+            notification.style.whiteSpace = 'pre-line';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 400);
+            }, type === 'success' ? 4000 : 6000);
+        }
+
+        function showHelp() {
+            const helpMessage = `🆘 AYUDA DEL CURSO
+
+📚 Navegación:
+• Usa los botones superiores para moverte entre módulos
+• Los módulos completados muestran una marca ✓
+• Tu progreso se guarda automáticamente
+
+🎯 Actividades Interactivas:
+• Pestañas: Haz clic para explorar contenido
+• Acordeones: Expande/colapsa secciones
+• Flip Cards: Pasa el mouse para ver el reverso
+• Drag & Drop: Arrastra elementos a sus categorías
+
+⏰ Duración estimada: 45-60 minutos
+
+💡 Consejos:
+• Interactúa con todos los elementos
+• Lee detenidamente los ejemplos
+• Completa la evaluación final con 80%+ para obtener certificado
+
+🎓 Certificación:
+• Completa todos los módulos
+• Supera la evaluación final
+• Obtén tu certificado digital
+
+❓ ¿Problemas?
+• Recarga si algo no responde
+• Usa navegadores modernos (Chrome, Firefox, Edge)`;
+            
+            showNotification(helpMessage);
+        }
+
+        function saveProgress() {
+            const progressData = {
+                ...courseData,
+                lastAccess: new Date().toISOString()
+            };
+            localStorage.setItem('promptLibraryCourse', JSON.stringify(progressData));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('promptLibraryCourse');
+            if (saved) {
+                const savedData = JSON.parse(saved);
+                courseData = { ...courseData, ...savedData };
+                courseData.startTime = new Date(savedData.startTime);
+                
+                // Marcar módulos completados en la interfaz
+                courseData.completedModules.forEach(moduleIndex => {
+                    const navBtns = document.querySelectorAll('.nav-btn');
+                    if (navBtns[moduleIndex]) {
+                        navBtns[moduleIndex].classList.add('completed');
+                    }
+                });
+            }
+        }
+
+        // SCORM API básica
+        window.API = {
+            Initialize: () => "true",
+            Terminate: () => "true",
+            GetValue: (element) => {
+                switch (element) {
+                    case "cmi.core.lesson_status":
+                        return courseData.completedModules.length >= 7 ? "completed" : "incomplete";
+                    case "cmi.core.score.raw":
+                        return courseData.dragDropScore || 0;
+                    default:
+                        return "";
+                }
+            },
+            SetValue: (element, value) => {
+                if (element === "cmi.core.lesson_status") {
+                    // Estado actualizado
+                }
+                return "true";
+            },
+            Commit: () => {
+                saveProgress();
+                return "true";
+            }
+        };
+
+        // Auto-guardar cada 30 segundos
+        setInterval(saveProgress, 30000);
+        
+        // Guardar al salir
+        window.addEventListener('beforeunload', saveProgress);
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"cae65d1a24bc4fccbb90108b5f9f9679","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

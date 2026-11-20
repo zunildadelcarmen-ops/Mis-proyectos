@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformación Digital - Curso Interactivo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --verde: #729E2E;
+            --celeste: #009EE3;
+            --amarillo: #E2A30B;
+            --naranjo: #DF501D;
+            --gris-oscuro: #2c3e50;
+            --gris-claro: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--celeste) 0%, var(--verde) 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .course-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--gris-oscuro), #34495e);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--verde), var(--celeste));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        .navigation {
+            background: var(--gris-claro);
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn.primary {
+            background: var(--celeste);
+            color: white;
+        }
+
+        .nav-btn.secondary {
+            background: var(--verde);
+            color: white;
+        }
+
+        .nav-btn.warning {
+            background: var(--amarillo);
+            color: white;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .content-area {
+            padding: 30px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .slide {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide h2 {
+            color: var(--gris-oscuro);
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            border-bottom: 4px solid var(--celeste);
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slide h3 {
+            color: var(--gris-oscuro);
+            font-size: 1.5rem;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Tabs Interactivas */
+        .tabs-container {
+            margin: 25px 0;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f1f3f4;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            background: #e9ecef;
+            color: var(--gris-oscuro);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab.active {
+            background: var(--celeste);
+            color: white;
+        }
+
+        .tab:hover {
+            background: var(--verde);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 25px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            min-height: 200px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* Flip Cards */
+        .flip-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 250px;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, var(--celeste), var(--verde));
+            color: white;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, var(--amarillo), var(--naranjo));
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .flip-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .flip-card p {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Acordeón */
+        .accordion {
+            margin: 25px 0;
+        }
+
+        .accordion-item {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background: linear-gradient(135deg, var(--verde), var(--celeste));
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background: linear-gradient(135deg, var(--celeste), var(--verde));
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: white;
+        }
+
+        .accordion-content.open {
+            max-height: 500px;
+        }
+
+        .accordion-content-inner {
+            padding: 25px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-item.open .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Listas con íconos */
+        .icon-list {
+            list-style: none;
+            margin: 25px 0;
+        }
+
+        .icon-list li {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: var(--gris-claro);
+            border-radius: 10px;
+            border-left: 5px solid var(--verde);
+            transition: all 0.3s ease;
+        }
+
+        .icon-list li:hover {
+            background: #e3f2fd;
+            border-left-color: var(--celeste);
+            transform: translateX(10px);
+        }
+
+        .icon-list .icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            color: var(--celeste);
+            min-width: 40px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--verde), var(--celeste));
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding-left: 80px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 18px;
+            width: 24px;
+            height: 24px;
+            background: var(--amarillo);
+            border: 4px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px var(--celeste);
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--verde);
+        }
+
+        .timeline-content h4 {
+            color: var(--gris-oscuro);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Párrafo + imagen */
+        .content-with-image {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            align-items: center;
+            margin: 25px 0;
+            padding: 25px;
+            background: var(--gris-claro);
+            border-radius: 15px;
+        }
+
+        .content-with-image .text-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .content-with-image .image-content {
+            background: linear-gradient(135deg, var(--celeste), var(--verde));
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            font-size: 4rem;
+        }
+
+        /* Quiz Final - Arrastrar y Soltar */
+        .drag-drop-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .drag-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .drag-item {
+            background: linear-gradient(135deg, var(--amarillo), var(--naranjo));
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: grab;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .drag-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .drag-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .drop-zones {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .drop-zone {
+            min-height: 200px;
+            border: 3px dashed #dee2e6;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .drop-zone.pilares {
+            border-color: var(--verde);
+            background: linear-gradient(135deg, rgba(114, 158, 46, 0.1), rgba(114, 158, 46, 0.05));
+        }
+
+        .drop-zone.errores {
+            border-color: var(--naranjo);
+            background: linear-gradient(135deg, rgba(223, 80, 29, 0.1), rgba(223, 80, 29, 0.05));
+        }
+
+        .drop-zone.drag-over {
+            border-style: solid;
+            background: rgba(0, 158, 227, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drop-zone h4 {
+            color: var(--gris-oscuro);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .dropped-item {
+            background: var(--celeste);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 5px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .quiz-result {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .quiz-result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .quiz-result.partial {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .slide-counter {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .completion-badge {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, var(--verde), var(--celeste));
+            color: white;
+            border-radius: 20px;
+            margin: 25px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .completion-badge h3 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .score-display {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 15px;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .content-with-image {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .content-with-image .image-content {
+                order: -1;
+                padding: 20px;
+                font-size: 2rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .drop-zones {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                padding-left: 60px;
+            }
+
+            .timeline-marker {
+                left: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="course-container">
+        <div class="header">
+            <h1>🚀 Transformación Digital</h1>
+            <p>Un viaje de reinvención organizacional</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <div class="slide-counter">
+                <span id="slideCounter">Slide 1 de 7</span>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn secondary" id="prevBtn" onclick="previousSlide()" disabled>⬅ Anterior</button>
+                <button class="nav-btn primary" id="nextBtn" onclick="nextSlide()">Siguiente ➡</button>
+                <button class="nav-btn warning" onclick="resetCourse()">🔄 Reiniciar</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Slide 1: Introducción -->
+            <div class="slide active" data-slide="1">
+                <h2>🎯 Introducción a la Transformación Digital</h2>
+                
+                <div class="content-with-image">
+                    <div class="text-content">
+                        <p><strong>La transformación digital</strong> es un viaje de reinvención que va más allá de la mera adopción de tecnologías. Se trata de una profunda reestructuración cultural y estratégica que pone a la tecnología en el centro del negocio para crear valor y mantenerse competitivo.</p>
+                        <p style="margin-top: 15px;">Este proceso, aunque desafiante, es esencial para las organizaciones que buscan prosperar en la era actual. Para tener éxito en este camino, es crucial comprender y aplicar una serie de principios fundamentales, mientras se evitan las trampas más comunes.</p>
+                    </div>
+                    <div class="image-content">
+                        🔄
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, var(--celeste), var(--verde)); color: white; padding: 25px; border-radius: 15px; margin-top: 25px; text-align: center;">
+                    <h3 style="margin-bottom: 15px; color: white;">💡 Punto Clave</h3>
+                    <p style="font-size: 1.1rem; font-weight: 500; margin-bottom: 30px;">La transformación digital no es solo tecnología, es un cambio cultural que requiere estrategia, liderazgo y enfoque en las personas.</p>
+                </div>
+            </div>
+
+            <!-- Slide 2: Los 5 Pilares con Tabs -->
+            <div class="slide" data-slide="2">
+                <h2>🏛️ Los 5 Pilares del Éxito</h2>
+                
+                <p style="font-size: 1.1rem; margin-bottom: 25px;">El éxito en la transformación digital se basa en la construcción de pilares sólidos. Explora cada uno haciendo clic en las pestañas:</p>
+                
+                <div class="tabs-container">
+                    <div class="tabs">
+                        <button class="tab active" onclick="showTab('tab1')">👤 Usuario</button>
+                        <button class="tab" onclick="showTab('tab2')">💡 Innovación</button>
+                        <button class="tab" onclick="showTab('tab3')">🌐 Integración</button>
+                        <button class="tab" onclick="showTab('tab4')">📊 Datos</button>
+                        <button class="tab" onclick="showTab('tab5')">🧑‍💻 Talento</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="tab1">
+                        <h3 style="color: var(--verde); margin-bottom: 15px;">Centrado en el Usuario</h3>
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 15px;">La clave de cualquier transformación exitosa no reside en lo que la empresa quiere, sino en lo que el cliente necesita.</p>
+                        <ul class="icon-list">
+                            <li><span class="icon">🎯</span> Escuchar activamente a los clientes</li>
+                            <li><span class="icon">🔍</span> Entender sus puntos de dolor</li>
+                            <li><span class="icon">✨</span> Adaptar la experiencia a sus expectativas</li>
+                            <li><span class="icon">❤️</span> Diseñar pensando en el usuario final</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="tab2">
+                        <h3 style="color: var(--verde); margin-bottom: 15px;">Cultura de Innovación</h3>
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 15px;">Para que la tecnología florezca, debe existir un terreno fértil que fomente la experimentación.</p>
+                        <ul class="icon-list">
+                            <li><span class="icon">🧪</span> Ambiente seguro para experimentar</li>
+                            <li><span class="icon">⚡</span> Fallar rápido y ajustar el rumbo</li>
+                            <li><span class="icon">🌱</span> Considerar errores como aprendizaje</li>
+                            <li><span class="icon">🔄</span> La innovación como hábito, no evento</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="tab3">
+                        <h3 style="color: var(--verde); margin-bottom: 15px;">Integración Tecnológica</h3>
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 15px;">Las empresas modernas no pueden operar con sistemas aislados o "silos".</p>
+                        <ul class="icon-list">
+                            <li><span class="icon">🔗</span> Conectar sistemas y plataformas</li>
+                            <li><span class="icon">💫</span> Flujo de datos sin fricciones</li>
+                            <li><span class="icon">👁️</span> Visión 360° del negocio</li>
+                            <li><span class="icon">🤝</span> Tecnologías que "conversan" entre sí</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="tab4">
+                        <h3 style="color: var(--verde); margin-bottom: 15px;">Datos como Activo Estratégico</h3>
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 15px;">En la era digital, los datos son el nuevo petróleo que impulsa decisiones inteligentes.</p>
+                        <ul class="icon-list">
+                            <li><span class="icon">📈</span> Decisiones basadas en datos reales</li>
+                            <li><span class="icon">🏃‍♂️</span> Mayor agilidad y precisión</li>
+                            <li><span class="icon">🛡️</span> Gestión y protección de datos</li>
+                            <li><span class="icon">⚖️</span> Uso ético de la información</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="tab5">
+                        <h3 style="color: var(--verde); margin-bottom: 15px;">Desarrollo de Talento</h3>
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 15px;">La tecnología es una herramienta, pero son las personas quienes la utilizan.</p>
+                        <ul class="icon-list">
+                            <li><span class="icon">🎓</span> Formación continua de empleados</li>
+                            <li><span class="icon">💻</span> Nuevas habilidades digitales</li>
+                            <li><span class="icon">🧠</span> Desarrollo del pensamiento crítico</li>
+                            <li><span class="icon">👥</span> Equipos multidisciplinarios</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: Pilares con Flip Cards -->
+            <div class="slide" data-slide="3">
+                <h2>🏛️ Pilares en Acción</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 25px;">Pasa el cursor sobre las tarjetas para ver ejemplos prácticos de cada pilar:</p>
+                
+                <div class="flip-cards-container">
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <h4>👤 Centrado en el Usuario</h4>
+                                <p>¿Cómo se ve en la práctica?</p>
+                            </div>
+                            <div class="flip-card-back">
+                                <h4>Ejemplo Práctico</h4>
+                                <p>Amazon rediseña su interfaz cada vez que detecta que los usuarios abandonan el carrito de compras en un paso específico del proceso.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <h4>💡 Cultura de Innovación</h4>
+                                <p>¿Cómo se implementa?</p>
+                            </div>
+                            <div class="flip-card-back">
+                                <h4>Ejemplo Práctico</h4>
+                                <p>Google permite que sus empleados dediquen el 20% de su tiempo a proyectos personales, de donde han surgido productos como Gmail.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <h4>🌐 Integración Tecnológica</h4>
+                                <p>¿Qué significa realmente?</p>
+                            </div>
+                            <div class="flip-card-back">
+                                <h4>Ejemplo Práctico</h4>
+                                <p>Spotify integra datos de escucha, ubicación y hora del día para crear playlists personalizadas automáticamente.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <h4>📊 Datos Estratégicos</h4>
+                                <p>¿Cómo generar valor?</p>
+                            </div>
+                            <div class="flip-card-back">
+                                <h4>Ejemplo Práctico</h4>
+                                <p>Netflix usa datos de visualización para decidir qué series producir, resultando en éxitos como "House of Cards".</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4: Timeline de Errores -->
+            <div class="slide" data-slide="4">
+                <h2>⚠️ El Camino de los Errores Comunes</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 25px;">Aprende del camino que NO debes tomar. Esta línea de tiempo muestra los errores más costosos:</p>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>❌ Transformación sin Estrategia</h4>
+                            <p><strong>El Error:</strong> Comprar tecnología sin un propósito claro lleva a inversiones inútiles.</p>
+                            <p><strong>La Consecuencia:</strong> Soluciones que buscan problemas en lugar de resolver necesidades reales.</p>
+                            <p><strong>La Solución:</strong> Definir visión y objetivos claros alineados con el negocio.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>🛡️ Resistencia al Cambio</h4>
+                            <p><strong>El Error:</strong> No gestionar el factor humano en la transformación.</p>
+                            <p><strong>La Consecuencia:</strong> Implementaciones que fracasan por rechazo del equipo.</p>
+                            <p><strong>La Solución:</strong> Comunicar beneficios, involucrar y capacitar a los equipos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>📉 Falta de Medición</h4>
+                            <p><strong>El Error:</strong> No establecer KPIs claros desde el inicio.</p>
+                            <p><strong>La Consecuencia:</strong> Resultados invisibles y pérdida de motivación.</p>
+                            <p><strong>La Solución:</strong> Medir progreso para demostrar ROI y ajustar estrategia.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>🤖 Tecnología por Tecnología</h4>
+                            <p><strong>El Error:</strong> Implementar la "última tendencia" sin evaluar necesidad.</p>
+                            <p><strong>La Consecuencia:</strong> Soluciones costosas que no agregan valor.</p>
+                            <p><strong>La Solución:</strong> Cada tecnología debe resolver un problema específico.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: Acordeón de Mejores Prácticas -->
+            <div class="slide" data-slide="5">
+                <h2>✅ Mejores Prácticas para el Éxito</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 25px;">Haz clic en cada sección para descubrir las mejores prácticas que garantizan el éxito:</p>
+                
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span>🎯 Definir una Visión Clara</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-content-inner">
+                                <p>Antes de cualquier implementación tecnológica, define claramente:</p>
+                                <ul class="icon-list">
+                                    <li><span class="icon">🎪</span> ¿Cuál es la visión a largo plazo?</li>
+                                    <li><span class="icon">🎯</span> ¿Qué problemas específicos vas a resolver?</li>
+                                    <li><span class="icon">📈</span> ¿Cómo se medirá el éxito?</li>
+                                    <li><span class="icon">⏰</span> ¿Cuáles son los plazos realistas?</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span>👥 Involucrar a Todo el Equipo</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-content-inner">
+                                <p>La transformación digital es un esfuerzo colectivo:</p>
+                                <ul class="icon-list">
+                                    <li><span class="icon">💬</span> Comunicación transparente sobre los cambios</li>
+                                    <li><span class="icon">🎓</span> Capacitación continua en nuevas herramientas</li>
+                                    <li><span class="icon">🤝</span> Involucrar a los equipos en las decisiones</li>
+                                    <li><span class="icon">🎉</span> Celebrar los pequeños éxitos en el camino</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span>📊 Implementar Métricas desde el Día 1</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-content-inner">
+                                <p>Lo que no se mide, no se puede mejorar:</p>
+                                <ul class="icon-list">
+                                    <li><span class="icon">📈</span> KPIs específicos y medibles</li>
+                                    <li><span class="icon">📊</span> Dashboards en tiempo real</li>
+                                    <li><span class="icon">🔍</span> Análisis regular de resultados</li>
+                                    <li><span class="icon">⚡</span> Ajustes rápidos basados en datos</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span>🔄 Enfoque Iterativo y Ágil</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-content-inner">
+                                <p>La transformación digital es un proceso continuo:</p>
+                                <ul class="icon-list">
+                                    <li><span class="icon">🚀</span> Implementaciones en fases pequeñas</li>
+                                    <li><span class="icon">🔄</span> Ciclos cortos de feedback</li>
+                                    <li><span class="icon">⚡</span> Pivotes rápidos cuando sea necesario</li>
+                                    <li><span class="icon">🌱</span> Mejora continua como cultura</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: Quiz Arrastrar y Soltar -->
+            <div class="slide" data-slide="6">
+                <h2>🎯 Actividad Final: Clasifica los Conceptos</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 25px;">Arrastra cada concepto a la categoría correcta: ¿Es un <strong>Pilar del Éxito</strong> o un <strong>Error Común</strong>?</p>
+                
+                <div class="drag-drop-container">
+                    <div class="drag-items" id="dragItems">
+                        <div class="drag-item" draggable="true" data-category="pilares">Centrado en el Usuario</div>
+                        <div class="drag-item" draggable="true" data-category="errores">Tecnología sin Estrategia</div>
+                        <div class="drag-item" draggable="true" data-category="pilares">Cultura de Innovación</div>
+                        <div class="drag-item" draggable="true" data-category="errores">Falta de Medición</div>
+                        <div class="drag-item" draggable="true" data-category="pilares">Datos como Activo</div>
+                        <div class="drag-item" draggable="true" data-category="errores">Resistencia al Cambio</div>
+                        <div class="drag-item" draggable="true" data-category="pilares">Desarrollo de Talento</div>
+                        <div class="drag-item" draggable="true" data-category="errores">Tecnología por Tendencia</div>
+                    </div>
+                    
+                    <div class="drop-zones">
+                        <div class="drop-zone pilares" data-category="pilares">
+                            <h4>🏛️ Pilares del Éxito</h4>
+                            <p>Arrastra aquí los elementos que son pilares fundamentales</p>
+                        </div>
+                        <div class="drop-zone errores" data-category="errores">
+                            <h4>⚠️ Errores Comunes</h4>
+                            <p>Arrastra aquí los errores que se deben evitar</p>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-result" id="quizResult"></div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="nav-btn primary" onclick="checkDragDropAnswers()" id="checkAnswersBtn">✅ Verificar Respuestas</button>
+                        <button class="nav-btn warning" onclick="resetDragDrop()" style="margin-left: 10px;">🔄 Reiniciar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 7: Conclusión -->
+            <div class="slide" data-slide="7">
+                <div class="completion-badge">
+                    <h3>🏆 ¡Felicitaciones!</h3>
+                    <p>Has completado el curso de Transformación Digital</p>
+                    <div class="score-display">
+                        <strong>Tu progreso: <span id="finalScore">100%</span></strong>
+                    </div>
+                </div>
+
+                <h2>🎯 Un Viaje Continuo</h2>
+                
+                <div style="background: var(--gris-claro); padding: 25px; border-radius: 15px; margin: 25px 0;">
+                    <h3 style="color: var(--gris-oscuro); margin-bottom: 20px;">🔑 Puntos Clave para Recordar:</h3>
+                    <ul class="icon-list">
+                        <li><span class="icon">🎯</span><strong>Enfoque en el usuario:</strong> La transformación debe mejorar la vida del cliente</li>
+                        <li><span class="icon">📊</span><strong>Medir es fundamental:</strong> Sin KPIs claros, no hay forma de saber si funciona</li>
+                        <li><span class="icon">👥</span><strong>Las personas primero:</strong> La tecnología es una herramienta, las personas la hacen funcionar</li>
+                        <li><span class="icon">🔄</span><strong>Proceso continuo:</strong> La transformación digital no es un destino, es un viaje</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, var(--verde), var(--celeste)); color: white; padding: 25px; border-radius: 15px; text-align: center;">
+                    <h3 style="margin-bottom: 15px; color: white;">💭 Reflexión Final</h3>
+                    <p style="font-size: 1.1rem; margin-bottom: 15px;">La transformación digital requiere de una visión clara, un liderazgo decidido y un compromiso constante con la innovación.</p>
+                    <p style="font-style: italic;">¿Cuál será tu próximo paso en el camino de la transformación digital?</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SCORM API Simulation
+        window.SCORM = {
+            score: 0,
+            progress: 0,
+            completion: 'incomplete',
+            
+            Initialize: function() {
+                console.log('SCORM Initialized');
+                return 'true';
+            },
+            
+            SetValue: function(parameter, value) {
+                switch(parameter) {
+                    case 'cmi.core.score.raw':
+                        this.score = value;
+                        break;
+                    case 'cmi.core.lesson_status':
+                        this.completion = value;
+                        break;
+                    case 'cmi.core.session_time':
+                        break;
+                }
+                console.log('SCORM SetValue:', parameter, value);
+                return 'true';
+            },
+            
+            GetValue: function(parameter) {
+                switch(parameter) {
+                    case 'cmi.core.score.raw':
+                        return this.score;
+                    case 'cmi.core.lesson_status':
+                        return this.completion;
+                    default:
+                        return '';
+                }
+            },
+            
+            Commit: function() {
+                console.log('SCORM Commit - Score:', this.score, 'Status:', this.completion);
+                return 'true';
+            },
+            
+            Terminate: function() {
+                console.log('SCORM Terminated');
+                return 'true';
+            }
+        };
+
+        // Course Logic
+        let currentSlide = 1;
+        const totalSlides = 7;
+        let quizScore = 0;
+        let startTime = new Date();
+        let dragDropCompleted = false;
+
+        // Initialize SCORM
+        window.SCORM.Initialize();
+
+        function updateProgress() {
+            const progress = (currentSlide / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            if (currentSlide === totalSlides) {
+                window.SCORM.SetValue('cmi.core.lesson_status', 'completed');
+                window.SCORM.SetValue('cmi.core.score.raw', quizScore);
+                updateFinalScore();
+            }
+            
+            window.SCORM.Commit();
+        }
+
+        function updateSlideCounter() {
+            document.getElementById('slideCounter').textContent = `Slide ${currentSlide} de ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                document.querySelector(`[data-slide="${currentSlide}"]`).classList.remove('active');
+                currentSlide++;
+                document.querySelector(`[data-slide="${currentSlide}"]`).classList.add('active');
+                updateNavigation();
+                updateProgress();
+                updateSlideCounter();
+            }
+        }
+
+        function previousSlide() {
+            if (currentSlide > 1) {
+                document.querySelector(`[data-slide="${currentSlide}"]`).classList.remove('active');
+                currentSlide--;
+                document.querySelector(`[data-slide="${currentSlide}"]`).classList.add('active');
+                updateNavigation();
+                updateProgress();
+                updateSlideCounter();
+            }
+        }
+
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentSlide === 1;
+            
+            if (currentSlide === 6 && !dragDropCompleted) {
+                nextBtn.disabled = true;
+                nextBtn.textContent = 'Completa la actividad primero';
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.textContent = currentSlide === totalSlides ? 'Finalizar 🎯' : 'Siguiente ➡';
+            }
+        }
+
+        function resetCourse() {
+            if (confirm('¿Estás seguro de que quieres reiniciar el curso?')) {
+                currentSlide = 1;
+                quizScore = 0;
+                dragDropCompleted = false;
+                startTime = new Date();
+                
+                document.querySelectorAll('.slide').forEach(slide => slide.classList.remove('active'));
+                document.querySelector(`[data-slide="1"]`).classList.add('active');
+                
+                resetDragDrop();
+                resetTabs();
+                resetAccordions();
+                
+                updateNavigation();
+                updateProgress();
+                updateSlideCounter();
+                
+                window.SCORM.SetValue('cmi.core.lesson_status', 'incomplete');
+                window.SCORM.Commit();
+            }
+        }
+
+        // Tab functionality
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function resetTabs() {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector('.tab').classList.add('active');
+            document.getElementById('tab1').classList.add('active');
+        }
+
+        // Accordion functionality
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const content = header.nextElementSibling;
+            
+            item.classList.toggle('open');
+            
+            if (item.classList.contains('open')) {
+                content.classList.add('open');
+            } else {
+                content.classList.remove('open');
+            }
+        }
+
+        function resetAccordions() {
+            document.querySelectorAll('.accordion-item').forEach(item => {
+                item.classList.remove('open');
+                item.querySelector('.accordion-content').classList.remove('open');
+            });
+        }
+
+        // Drag and Drop functionality
+        let draggedElement = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDragDrop();
+        });
+
+        function initializeDragDrop() {
+            const dragItems = document.querySelectorAll('.drag-item');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            dragItems.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('drop', handleDrop);
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+
+            if (draggedElement) {
+                const droppedItem = document.createElement('div');
+                droppedItem.classList.add('dropped-item');
+                droppedItem.textContent = draggedElement.textContent;
+                droppedItem.setAttribute('data-category', draggedElement.getAttribute('data-category'));
+
+                this.appendChild(droppedItem);
+                draggedElement.remove();
+                draggedElement = null;
+            }
+        }
+
+        function checkDragDropAnswers() {
+            const pilaresZone = document.querySelector('.drop-zone.pilares');
+            const erroresZone = document.querySelector('.drop-zone.errores');
+            const resultDiv = document.getElementById('quizResult');
+
+            let correct = 0;
+            let total = 0;
+
+            // Check Pilares zone
+            pilaresZone.querySelectorAll('.dropped-item').forEach(item => {
+                total++;
+                if (item.getAttribute('data-category') === 'pilares') {
+                    correct++;
+                }
+            });
+
+            // Check Errores zone
+            erroresZone.querySelectorAll('.dropped-item').forEach(item => {
+                total++;
+                if (item.getAttribute('data-category') === 'errores') {
+                    correct++;
+                }
+            });
+
+            const percentage = Math.round((correct / total) * 100);
+            quizScore = percentage;
+
+            if (correct === total) {
+                resultDiv.className = 'quiz-result success show';
+                resultDiv.innerHTML = `🎉 ¡Perfecto! Has clasificado correctamente todos los conceptos (${correct}/${total})`;
+                dragDropCompleted = true;
+            } else {
+                resultDiv.className = 'quiz-result partial show';
+                resultDiv.innerHTML = `⚡ Bien hecho! Has clasificado correctamente ${correct} de ${total} conceptos (${percentage}%)`;
+                dragDropCompleted = true;
+            }
+
+            resultDiv.style.display = 'block';
+            updateNavigation();
+        }
+
+        function resetDragDrop() {
+            const dragItemsContainer = document.getElementById('dragItems');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const resultDiv = document.getElementById('quizResult');
+
+            // Clear drop zones
+            dropZones.forEach(zone => {
+                zone.querySelectorAll('.dropped-item').forEach(item => item.remove());
+            });
+
+            // Reset drag items
+            dragItemsContainer.innerHTML = `
+                <div class="drag-item" draggable="true" data-category="pilares">Centrado en el Usuario</div>
+                <div class="drag-item" draggable="true" data-category="errores">Tecnología sin Estrategia</div>
+                <div class="drag-item" draggable="true" data-category="pilares">Cultura de Innovación</div>
+                <div class="drag-item" draggable="true" data-category="errores">Falta de Medición</div>
+                <div class="drag-item" draggable="true" data-category="pilares">Datos como Activo</div>
+                <div class="drag-item" draggable="true" data-category="errores">Resistencia al Cambio</div>
+                <div class="drag-item" draggable="true" data-category="pilares">Desarrollo de Talento</div>
+                <div class="drag-item" draggable="true" data-category="errores">Tecnología por Tendencia</div>
+            `;
+
+            // Hide result
+            resultDiv.style.display = 'none';
+            dragDropCompleted = false;
+
+            // Reinitialize drag and drop
+            initializeDragDrop();
+            updateNavigation();
+        }
+
+        function updateFinalScore() {
+            document.getElementById('finalScore').textContent = quizScore + '%';
+        }
+
+        // Initialize
+        updateNavigation();
+        updateProgress();
+        updateSlideCounter();
+
+        // Handle page unload
+        window.addEventListener('beforeunload', function() {
+            const sessionTime = Math.round((new Date() - startTime) / 1000);
+            window.SCORM.SetValue('cmi.core.session_time', sessionTime);
+            window.SCORM.Terminate();
+        });
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"cae65d1a24bc4fccbb90108b5f9f9679","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
